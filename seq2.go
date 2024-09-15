@@ -14,13 +14,13 @@ func Len2[K, V any](seq iter.Seq2[K, V]) int {
 
 // Filter returns an iterator composed of the pairs of seq that
 // satisfy predicate p.
-func Filter2[L, R any](seq iter.Seq2[L, R], p func(L, R) bool) iter.Seq2[L, R] {
-	return func(yield func(L, R) bool) {
-		for l, r := range seq {
-			if !p(l, r) {
+func Filter2[K, V any](seq iter.Seq2[K, V], p func(K, V) bool) iter.Seq2[K, V] {
+	return func(yield func(K, V) bool) {
+		for k, v := range seq {
+			if !p(k, v) {
 				continue
 			}
-			if !yield(l, r) {
+			if !yield(k, v) {
 				return
 			}
 		}
@@ -28,10 +28,10 @@ func Filter2[L, R any](seq iter.Seq2[L, R], p func(L, R) bool) iter.Seq2[L, R] {
 }
 
 // Swap returns an iterator over the value-key pairs of seq.
-func Swap[A, B any](seq iter.Seq2[A, B]) iter.Seq2[B, A] {
-	return func(yield func(B, A) bool) {
-		for a, b := range seq {
-			if !yield(b, a) {
+func Swap[K, V any](seq iter.Seq2[K, V]) iter.Seq2[V, K] {
+	return func(yield func(V, K) bool) {
+		for k, v := range seq {
+			if !yield(v, k) {
 				return
 			}
 		}
