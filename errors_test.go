@@ -8,12 +8,16 @@ import (
 )
 
 func ExampleAllErrors() {
-	err1 := errors.New("err1")
-	err2 := fmt.Errorf("err2: %w", err1)
-	err3 := errors.New("err3")
-	err4 := errors.New("err4")
-	err5 := errors.Join(err3, err4)
-	err := errors.Join(err2, err5)
+	err := errors.Join(
+		fmt.Errorf(
+			"err2: %w",
+			errors.New("err1"),
+		),
+		errors.Join(
+			errors.New("err3"),
+			errors.New("err4"),
+		),
+	)
 	for i, err := range iterutil.AllErrors(err) {
 		fmt.Println(i, err)
 	}
@@ -30,12 +34,16 @@ func ExampleAllErrors() {
 }
 
 func ExampleAllLeafErrors() {
-	err1 := errors.New("err1")
-	err2 := fmt.Errorf("err2: %w", err1)
-	err3 := errors.New("err3")
-	err4 := errors.New("err4")
-	err5 := errors.Join(err3, err4)
-	err := errors.Join(err2, err5)
+	err := errors.Join(
+		fmt.Errorf(
+			"err2: %w",
+			errors.New("err1"),
+		),
+		errors.Join(
+			errors.New("err3"),
+			errors.New("err4"),
+		),
+	)
 	for i, err := range iterutil.AllLeafErrors(err) {
 		fmt.Println(i, err)
 	}
