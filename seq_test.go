@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"iter"
 	"slices"
+	"testing"
 
 	"github.com/jub0bs/iterutil"
 )
@@ -35,6 +36,34 @@ func ExampleSeqOf() {
 	// 3
 }
 
+func TestSeqOf(t *testing.T) {
+	cases := []struct {
+		desc      string
+		elems     []string
+		breakWhen func(string) bool
+		want      []string
+	}{
+		{
+			desc:      "no break",
+			elems:     []string{"one", "two", "three"},
+			breakWhen: alwaysFalse[string],
+			want:      []string{"one", "two", "three"},
+		}, {
+			desc:      "break early",
+			elems:     []string{"one", "two", "three"},
+			breakWhen: equal("three"),
+			want:      []string{"one", "two"},
+		},
+	}
+	for _, tc := range cases {
+		f := func(t *testing.T) {
+			got := iterutil.SeqOf(tc.elems...)
+			assertEqual(t, got, tc.want, tc.breakWhen)
+		}
+		t.Run(tc.desc, f)
+	}
+}
+
 func ExampleCons() {
 	seq := iterutil.Cons(0, slices.Values([]int{1, 2, 3}))
 	for i := range seq {
@@ -45,6 +74,43 @@ func ExampleCons() {
 	// 1
 	// 2
 	// 3
+}
+
+func TestCons(t *testing.T) {
+	cases := []struct {
+		desc      string
+		first     string
+		rest      []string
+		breakWhen func(string) bool
+		want      []string
+	}{
+		{
+			desc:      "no break",
+			first:     "zero",
+			rest:      []string{"one", "two", "three"},
+			breakWhen: alwaysFalse[string],
+			want:      []string{"zero", "one", "two", "three"},
+		}, {
+			desc:      "break early",
+			first:     "zero",
+			breakWhen: equal("zero"),
+			rest:      []string{"one", "two", "three"},
+		}, {
+			desc:      "break early but later",
+			first:     "zero",
+			rest:      []string{"one", "two", "three"},
+			breakWhen: equal("two"),
+			want:      []string{"zero", "one"},
+		},
+	}
+	for _, tc := range cases {
+		f := func(t *testing.T) {
+			rest := slices.Values(tc.rest)
+			got := iterutil.Cons(tc.first, rest)
+			assertEqual(t, got, tc.want, tc.breakWhen)
+		}
+		t.Run(tc.desc, f)
+	}
 }
 
 func ExampleHead() {
@@ -71,6 +137,52 @@ func ExampleTail() {
 	// Output: [2 3 4]
 }
 
+func TestTail(t *testing.T) {
+	cases := []struct {
+		desc      string
+		elems     []string
+		breakWhen func(string) bool
+		want      []string
+		ok        bool
+	}{
+		{
+			desc:      "empty",
+			elems:     []string{},
+			breakWhen: alwaysFalse[string],
+		}, {
+			desc:      "no break",
+			elems:     []string{"one", "two", "three"},
+			breakWhen: alwaysFalse[string],
+			want:      []string{"two", "three"},
+			ok:        true,
+		}, {
+			desc:      "break early",
+			elems:     []string{"one", "two", "three"},
+			breakWhen: equal("three"),
+			want:      []string{"two"},
+			ok:        true,
+		},
+	}
+	for _, tc := range cases {
+		f := func(t *testing.T) {
+			seq := slices.Values(tc.elems)
+			got, ok := iterutil.Tail(seq)
+			if ok != tc.ok {
+				t.Fatalf("got %t; want %t", ok, tc.ok)
+			}
+			if !tc.ok && got != nil {
+				t.Fatal("got non-nil iter.Seq[string]; want nil iter.Seq[string]")
+			}
+			if !ok {
+				return
+			}
+			assertEqual(t, got, tc.want, tc.breakWhen)
+
+		}
+		t.Run(tc.desc, f)
+	}
+}
+
 func ExampleUncons() {
 	seq := slices.Values([]int{})
 	head, tail, ok := iterutil.Uncons(seq)
@@ -85,6 +197,57 @@ func ExampleUncons() {
 	// Output: 1 [2 3 4]
 }
 
+func TestUncons(t *testing.T) {
+	cases := []struct {
+		desc      string
+		elems     []string
+		breakWhen func(string) bool
+		wantHead  string
+		wantTail  []string
+		ok        bool
+	}{
+		{
+			desc:      "empty",
+			elems:     []string{},
+			breakWhen: alwaysFalse[string],
+		}, {
+			desc:      "no break",
+			elems:     []string{"one", "two", "three"},
+			breakWhen: alwaysFalse[string],
+			wantHead:  "one",
+			wantTail:  []string{"two", "three"},
+			ok:        true,
+		}, {
+			desc:      "break early",
+			elems:     []string{"one", "two", "three"},
+			breakWhen: equal("three"),
+			wantHead:  "one",
+			wantTail:  []string{"two"},
+			ok:        true,
+		},
+	}
+	for _, tc := range cases {
+		f := func(t *testing.T) {
+			seq := slices.Values(tc.elems)
+			head, tail, ok := iterutil.Uncons(seq)
+			if ok != tc.ok {
+				t.Fatalf("got %t; want %t", ok, tc.ok)
+			}
+			if !tc.ok && tail != nil {
+				t.Fatal("got non-nil iter.Seq[string]; want nil iter.Seq[string]")
+			}
+			if !ok {
+				return
+			}
+			if head != tc.wantHead {
+				t.Errorf("got %s; want %s", head, tc.wantHead)
+			}
+			assertEqual(t, tail, tc.wantTail, tc.breakWhen)
+		}
+		t.Run(tc.desc, f)
+	}
+}
+
 func ExampleAppend() {
 	seq1 := slices.Values([]string{"foo", "bar"})
 	seq2 := slices.Values([]string{"baz", "qux"})
@@ -96,6 +259,50 @@ func ExampleAppend() {
 	// bar
 	// baz
 	// qux
+}
+
+func TestAppend(t *testing.T) {
+	cases := []struct {
+		desc      string
+		seq1      []string
+		seq2      []string
+		breakWhen func(string) bool
+		want      []string
+	}{
+		{
+			desc:      "empty",
+			seq1:      []string{},
+			seq2:      []string{},
+			breakWhen: alwaysFalse[string],
+		}, {
+			desc:      "no break",
+			seq1:      []string{"one", "two", "three"},
+			seq2:      []string{"four", "five", "six"},
+			breakWhen: alwaysFalse[string],
+			want:      []string{"one", "two", "three", "four", "five", "six"},
+		}, {
+			desc:      "break early",
+			seq1:      []string{"one", "two", "three"},
+			seq2:      []string{"four", "five", "six"},
+			breakWhen: equal("three"),
+			want:      []string{"one", "two"},
+		}, {
+			desc:      "break early but later",
+			seq1:      []string{"one", "two", "three"},
+			seq2:      []string{"four", "five", "six"},
+			breakWhen: equal("five"),
+			want:      []string{"one", "two", "three", "four"},
+		},
+	}
+	for _, tc := range cases {
+		f := func(t *testing.T) {
+			seq1 := slices.Values(tc.seq1)
+			seq2 := slices.Values(tc.seq2)
+			got := iterutil.Append(seq1, seq2)
+			assertEqual(t, got, tc.want, tc.breakWhen)
+		}
+		t.Run(tc.desc, f)
+	}
 }
 
 func ExampleConcat() {
@@ -112,6 +319,45 @@ func ExampleConcat() {
 	// qux
 }
 
+func TestConcat(t *testing.T) {
+	cases := []struct {
+		desc      string
+		seq1      []string
+		seq2      []string
+		breakWhen func(string) bool
+		want      []string
+	}{
+		{
+			desc:      "empty",
+			seq1:      []string{},
+			seq2:      []string{},
+			breakWhen: alwaysFalse[string],
+		}, {
+			desc:      "no break",
+			seq1:      []string{"one", "two", "three"},
+			seq2:      []string{"four", "five", "six"},
+			breakWhen: alwaysFalse[string],
+			want:      []string{"one", "two", "three", "four", "five", "six"},
+		}, {
+			desc:      "break early",
+			seq1:      []string{"one", "two", "three"},
+			seq2:      []string{"four", "five", "six"},
+			breakWhen: equal("three"),
+			want:      []string{"one", "two"},
+		},
+	}
+	for _, tc := range cases {
+		f := func(t *testing.T) {
+			seq1 := slices.Values(tc.seq1)
+			seq2 := slices.Values(tc.seq2)
+			seq := slices.Values([]iter.Seq[string]{seq1, seq2})
+			got := iterutil.Concat(seq)
+			assertEqual(t, got, tc.want, tc.breakWhen)
+		}
+		t.Run(tc.desc, f)
+	}
+}
+
 func ExampleMap() {
 	seq := slices.Values([]string{"one", "two", "three"})
 	length := func(s string) int { return len(s) }
@@ -124,6 +370,38 @@ func ExampleMap() {
 	// 5
 }
 
+func TestMap(t *testing.T) {
+	cases := []struct {
+		desc      string
+		elems     []string
+		f         func(string) int
+		breakWhen func(int) bool
+		want      []int
+	}{
+		{
+			desc:      "no break",
+			elems:     []string{"one", "two", "three"},
+			f:         func(s string) int { return len(s) },
+			breakWhen: alwaysFalse[int],
+			want:      []int{3, 3, 5},
+		}, {
+			desc:      "break early",
+			elems:     []string{"one", "two", "three"},
+			f:         func(s string) int { return len(s) },
+			breakWhen: equal(5),
+			want:      []int{3, 3},
+		},
+	}
+	for _, tc := range cases {
+		f := func(t *testing.T) {
+			seq := slices.Values(tc.elems)
+			got := iterutil.Map(seq, tc.f)
+			assertEqual(t, got, tc.want, tc.breakWhen)
+		}
+		t.Run(tc.desc, f)
+	}
+}
+
 func ExampleFilter() {
 	seq := slices.Values([]int{1, 42, 99, 100})
 	isOdd := func(i int) bool { return i%2 != 0 }
@@ -133,6 +411,38 @@ func ExampleFilter() {
 	// Output:
 	// 1
 	// 99
+}
+
+func TestFilter(t *testing.T) {
+	cases := []struct {
+		desc      string
+		elems     []string
+		p         func(string) bool
+		breakWhen func(string) bool
+		want      []string
+	}{
+		{
+			desc:      "no break",
+			elems:     []string{"one", "two", "three"},
+			p:         func(s string) bool { return len(s) == 3 },
+			breakWhen: alwaysFalse[string],
+			want:      []string{"one", "two"},
+		}, {
+			desc:      "break early",
+			elems:     []string{"one", "two", "three"},
+			p:         func(s string) bool { return len(s) == 3 },
+			breakWhen: equal("two"),
+			want:      []string{"one"},
+		},
+	}
+	for _, tc := range cases {
+		f := func(t *testing.T) {
+			seq := slices.Values(tc.elems)
+			got := iterutil.Filter(seq, tc.p)
+			assertEqual(t, got, tc.want, tc.breakWhen)
+		}
+		t.Run(tc.desc, f)
+	}
 }
 
 func ExampleFlatMap() {
@@ -150,6 +460,38 @@ func ExampleFlatMap() {
 	// 3
 	// 3
 	// 3
+}
+
+func TestFlatMap(t *testing.T) {
+	cases := []struct {
+		desc      string
+		elems     []string
+		f         func(string) iter.Seq[byte]
+		breakWhen func(byte) bool
+		want      []byte
+	}{
+		{
+			desc:      "no break",
+			elems:     []string{"one", "two", "three"},
+			f:         func(s string) iter.Seq[byte] { return slices.Values([]byte(s)) },
+			breakWhen: alwaysFalse[byte],
+			want:      []byte("one" + "two" + "three"),
+		}, {
+			desc:      "break early",
+			elems:     []string{"one", "two", "three"},
+			f:         func(s string) iter.Seq[byte] { return slices.Values([]byte(s)) },
+			breakWhen: equal(byte('w')),
+			want:      []byte("one" + "t"),
+		},
+	}
+	for _, tc := range cases {
+		f := func(t *testing.T) {
+			seq := slices.Values(tc.elems)
+			got := iterutil.FlatMap(seq, tc.f)
+			assertEqual(t, got, tc.want, tc.breakWhen)
+		}
+		t.Run(tc.desc, f)
+	}
 }
 
 func ExampleTakeWhile() {
@@ -174,6 +516,38 @@ func ExampleDropWhile() {
 	// qux
 }
 
+func TestDropWhile(t *testing.T) {
+	cases := []struct {
+		desc      string
+		elems     []string
+		p         func(string) bool
+		breakWhen func(string) bool
+		want      []string
+	}{
+		{
+			desc:      "no break",
+			elems:     []string{"one", "two", "three"},
+			p:         func(s string) bool { return len(s) == 3 },
+			breakWhen: alwaysFalse[string],
+			want:      []string{"three"},
+		}, {
+			desc:      "break early",
+			elems:     []string{"one", "two", "three", "four"},
+			p:         func(s string) bool { return len(s) == 3 },
+			breakWhen: equal("four"),
+			want:      []string{"three"},
+		},
+	}
+	for _, tc := range cases {
+		f := func(t *testing.T) {
+			seq := slices.Values(tc.elems)
+			got := iterutil.DropWhile(seq, tc.p)
+			assertEqual(t, got, tc.want, tc.breakWhen)
+		}
+		t.Run(tc.desc, f)
+	}
+}
+
 func ExampleLen() {
 	seq := slices.Values([]int{})
 	fmt.Println(iterutil.Len(seq))
@@ -194,6 +568,50 @@ func ExampleTake() {
 	// bar
 }
 
+func TestTake(t *testing.T) {
+	cases := []struct {
+		desc      string
+		elems     []string
+		count     int
+		breakWhen func(string) bool
+		want      []string
+		panics    bool
+	}{
+		{
+			desc:      "negative count",
+			elems:     []string{"one", "two", "three"},
+			count:     -1,
+			breakWhen: alwaysFalse[string],
+			panics:    true,
+		}, {
+			desc:      "no break",
+			elems:     []string{"one", "two", "three"},
+			count:     2,
+			breakWhen: alwaysFalse[string],
+			want:      []string{"one", "two"},
+		}, {
+			desc:      "break early",
+			elems:     []string{"one", "two", "three"},
+			count:     3,
+			breakWhen: equal("two"),
+			want:      []string{"one"},
+		},
+	}
+	for _, tc := range cases {
+		f := func(t *testing.T) {
+			defer func() {
+				if r := recover(); tc.panics && r == nil {
+					t.Errorf("got no panic; want panic")
+				}
+			}()
+			seq := slices.Values(tc.elems)
+			got := iterutil.Take(seq, tc.count)
+			assertEqual(t, got, tc.want, tc.breakWhen)
+		}
+		t.Run(tc.desc, f)
+	}
+}
+
 func ExampleDrop() {
 	seq := slices.Values([]string{"foo", "bar", "baz", "qux"})
 	for s := range iterutil.Drop(seq, 3) {
@@ -203,11 +621,99 @@ func ExampleDrop() {
 	// qux
 }
 
+func TestDrop(t *testing.T) {
+	cases := []struct {
+		desc      string
+		elems     []string
+		count     int
+		breakWhen func(string) bool
+		want      []string
+		panics    bool
+	}{
+		{
+			desc:      "negative count",
+			elems:     []string{"one", "two", "three"},
+			count:     -1,
+			breakWhen: alwaysFalse[string],
+			panics:    true,
+		}, {
+			desc:      "no break",
+			elems:     []string{"one", "two", "three"},
+			count:     2,
+			breakWhen: alwaysFalse[string],
+			want:      []string{"three"},
+		}, {
+			desc:      "break early",
+			elems:     []string{"one", "two", "three", "four"},
+			count:     2,
+			breakWhen: equal("four"),
+			want:      []string{"three"},
+		},
+	}
+	for _, tc := range cases {
+		f := func(t *testing.T) {
+			defer func() {
+				if r := recover(); tc.panics && r == nil {
+					t.Errorf("got no panic; want panic")
+				}
+			}()
+			seq := slices.Values(tc.elems)
+			got := iterutil.Drop(seq, tc.count)
+			assertEqual(t, got, tc.want, tc.breakWhen)
+		}
+		t.Run(tc.desc, f)
+	}
+}
+
 func ExampleAt() {
 	seq := slices.Values([]string{"foo", "bar", "baz", "qux"})
 	fmt.Println(iterutil.At(seq, 2))
 	// Output:
 	// baz true
+}
+
+func TestAt(t *testing.T) {
+	cases := []struct {
+		desc   string
+		elems  []string
+		n      int
+		want   string
+		ok     bool
+		panics bool
+	}{
+		{
+			desc:   "negative index",
+			elems:  []string{"one", "two", "three"},
+			n:      -1,
+			panics: true,
+		}, {
+			desc:  "within bounds",
+			elems: []string{"one", "two", "three"},
+			n:     2,
+			want:  "three",
+			ok:    true,
+		}, {
+			desc:  "out of bounds",
+			elems: []string{"one", "two", "three"},
+			n:     4,
+		},
+	}
+	for _, tc := range cases {
+		f := func(t *testing.T) {
+			defer func() {
+				if r := recover(); tc.panics && r == nil {
+					t.Errorf("got no panic; want panic")
+				}
+			}()
+			seq := slices.Values(tc.elems)
+			s, ok := iterutil.At(seq, tc.n)
+			if s != tc.want || ok != tc.ok {
+				t.Fatalf("got %s, %t; want %s, %t", s, ok, tc.want, tc.ok)
+			}
+
+		}
+		t.Run(tc.desc, f)
+	}
 }
 
 func ExampleContains() {
@@ -254,6 +760,49 @@ func ExampleZipWith() {
 	// quatre => four
 }
 
+func TestZipWith(t *testing.T) {
+	cases := []struct {
+		desc      string
+		keys      []string
+		values    []string
+		f         func(string, string) string
+		breakWhen func(string) bool
+		want      []string
+	}{
+		{
+			desc:      "no break",
+			keys:      []string{"un", "deux", "trois", "quatre", "cinq"},
+			values:    []string{"one", "two", "three"},
+			f:         func(fr, en string) string { return fr + " => " + en },
+			breakWhen: alwaysFalse[string],
+			want: []string{
+				"un => one",
+				"deux => two",
+				"trois => three",
+			},
+		}, {
+			desc:      "break early",
+			keys:      []string{"un", "deux", "trois", "quatre", "cinq"},
+			values:    []string{"one", "two", "three"},
+			f:         func(fr, en string) string { return fr + " => " + en },
+			breakWhen: equal("trois => three"),
+			want: []string{
+				"un => one",
+				"deux => two",
+			},
+		},
+	}
+	for _, tc := range cases {
+		f := func(t *testing.T) {
+			keys := slices.Values(tc.keys)
+			values := slices.Values(tc.values)
+			got := iterutil.ZipWith(keys, values, tc.f)
+			assertEqual(t, got, tc.want, tc.breakWhen)
+		}
+		t.Run(tc.desc, f)
+	}
+}
+
 func ExampleRepeat() {
 	seq := iterutil.Repeat("foo", -1)
 	var count int
@@ -268,6 +817,43 @@ func ExampleRepeat() {
 	// foo
 	// foo
 	// foo
+}
+
+func TestRepeat(t *testing.T) {
+	cases := []struct {
+		desc      string
+		elem      string
+		count     int
+		breakWhen func(string) bool
+		want      []string
+	}{
+		{
+			desc:      "finite no break",
+			elem:      "foo",
+			count:     3,
+			breakWhen: alwaysFalse[string],
+			want:      []string{"foo", "foo", "foo"},
+		}, {
+			desc:      "finite break early",
+			elem:      "foo",
+			count:     3,
+			breakWhen: falseAfterN[string](2),
+			want:      []string{"foo", "foo"},
+		}, {
+			desc:      "infinite",
+			elem:      "foo",
+			count:     -1,
+			breakWhen: falseAfterN[string](2),
+			want:      []string{"foo", "foo"},
+		},
+	}
+	for _, tc := range cases {
+		f := func(t *testing.T) {
+			got := iterutil.Repeat(tc.elem, tc.count)
+			assertEqual(t, got, tc.want, tc.breakWhen)
+		}
+		t.Run(tc.desc, f)
+	}
 }
 
 func ExampleIterate() {
