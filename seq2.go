@@ -17,10 +17,7 @@ func Len2[K, V any](seq iter.Seq2[K, V]) int {
 func Filter2[K, V any](seq iter.Seq2[K, V], p func(K, V) bool) iter.Seq2[K, V] {
 	return func(yield func(K, V) bool) {
 		for k, v := range seq {
-			if !p(k, v) {
-				continue
-			}
-			if !yield(k, v) {
+			if p(k, v) && !yield(k, v) {
 				return
 			}
 		}

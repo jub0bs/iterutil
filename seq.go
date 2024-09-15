@@ -146,10 +146,7 @@ func Map[A, B any](seq iter.Seq[A], f func(A) B) iter.Seq[B] {
 func Filter[E any](seq iter.Seq[E], p func(E) bool) iter.Seq[E] {
 	return func(yield func(E) bool) {
 		for e := range seq {
-			if !p(e) {
-				continue
-			}
-			if !yield(e) {
+			if p(e) && !yield(e) {
 				return
 			}
 		}
