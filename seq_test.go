@@ -254,17 +254,6 @@ func ExampleZipWith() {
 	// quatre => four
 }
 
-func ExampleReplicate() {
-	for s := range iterutil.Replicate("foo", 4) {
-		fmt.Println(s)
-	}
-	// Output:
-	// foo
-	// foo
-	// foo
-	// foo
-}
-
 func ExampleRepeat() {
 	seq := iterutil.Repeat(42)
 	var count int

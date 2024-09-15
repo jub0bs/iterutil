@@ -321,21 +321,6 @@ func ZipWith[A, B, C any](seq1 iter.Seq[A], seq2 iter.Seq[B], f func(A, B) C) it
 	}
 }
 
-// Replicate returns an iterator of length count whose values are invariably e.
-// If count is negative, Replicate returns an empty iterator.
-func Replicate[E any](e E, count int) iter.Seq[E] {
-	if count < 0 {
-		return Empty[E]()
-	}
-	return func(yield func(E) bool) {
-		for range count {
-			if !yield(e) {
-				return
-			}
-		}
-	}
-}
-
 // Repeat returns an infinite iterator whose values are invariably e.
 func Repeat[E any](e E) iter.Seq[E] {
 	return func(yield func(E) bool) {
