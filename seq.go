@@ -207,12 +207,13 @@ func Len[E any](seq iter.Seq[E]) int {
 	return n
 }
 
-// Take returns the prefix of seq of length count.
-// If count is negative, Take returns an empty iterator.
-// If count is larger than the number of elements in seq, Take returns seq.
+// Take, if count is non-negative, returns
+// the prefix of seq of length count
+// or simply seq if seq contains fewer than count elements;
+// otherwise, it panics.
 func Take[E any](seq iter.Seq[E], count int) iter.Seq[E] {
 	if count < 0 {
-		return Empty[E]()
+		panic("cannot be negative")
 	}
 	return func(yield func(E) bool) {
 		for e := range seq {
@@ -224,18 +225,18 @@ func Take[E any](seq iter.Seq[E], count int) iter.Seq[E] {
 	}
 }
 
-// Drop returns the suffix of seq after the first count elements.
-// If count is negative, Drop returns seq.
-// If count is larger than the number of elements in seq,
-// Drop returns an empty iterator.
+// Drop, if count is non-negative, returns
+// the suffix of seq after the first count elements
+// or simply an empty iterator if seq contains fewer than count elements;
+// otherwise, it panics.
 func Drop[E any](seq iter.Seq[E], count int) iter.Seq[E] {
 	if count < 0 {
-		return seq
+		panic("cannot be negative")
 	}
 	return func(yield func(E) bool) {
 		for e := range seq {
 			count--
-			if count >= 0 {
+			if 0 <= count {
 				continue
 			}
 			if !yield(e) {
@@ -245,12 +246,13 @@ func Drop[E any](seq iter.Seq[E], count int) iter.Seq[E] {
 	}
 }
 
-// At, if seq has at least n elements,
-// returns the element at index n in seq and true;
-// otherwise, it returns the zero value and false.
+// At, if count is non-negative, returns
+// the element at index n in seq and true
+// or the zero value and false if seq contains fewer than count elements;
+// otherwise, it panics.
 func At[E any](seq iter.Seq[E], n int) (e E, ok bool) {
 	if n < 0 {
-		return
+		panic("cannot be negative")
 	}
 	for v := range seq {
 		switch cmp.Compare(n, 0) {
