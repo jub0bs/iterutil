@@ -255,19 +255,19 @@ func ExampleZipWith() {
 }
 
 func ExampleRepeat() {
-	seq := iterutil.Repeat(42)
+	seq := iterutil.Repeat("foo", -1)
 	var count int
-	for i := range seq {
+	for s := range seq {
 		count++
 		if count > 3 {
 			break
 		}
-		fmt.Println(i)
+		fmt.Println(s)
 	}
 	// Output:
-	// 42
-	// 42
-	// 42
+	// foo
+	// foo
+	// foo
 }
 
 func ExampleIterate() {
