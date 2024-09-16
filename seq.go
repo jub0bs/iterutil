@@ -1,7 +1,6 @@
 package iterutil
 
 import (
-	"cmp"
 	"iter"
 )
 
@@ -252,17 +251,13 @@ func At[E any](seq iter.Seq[E], n int) (e E, ok bool) {
 		panic("cannot be negative")
 	}
 	for v := range seq {
-		switch cmp.Compare(n, 0) {
-		case -1:
-			return
-		case 0:
-			e = v
-			ok = true
-			return
-		case 1:
+		if 0 < n {
 			n--
 			continue
 		}
+		e = v
+		ok = true
+		return
 	}
 	return
 }
