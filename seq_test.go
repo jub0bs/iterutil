@@ -113,11 +113,11 @@ func TestCons(t *testing.T) {
 	}
 }
 
-func ExampleConcat() {
+func ExampleFlatten() {
 	seq1 := slices.Values([]string{"foo", "bar"})
 	seq2 := slices.Values([]string{"baz", "qux"})
 	seqs := slices.Values([]iter.Seq[string]{seq1, seq2})
-	for s := range iterutil.Concat(seqs) {
+	for s := range iterutil.Flatten(seqs) {
 		fmt.Println(s)
 	}
 	// Output:
@@ -127,7 +127,7 @@ func ExampleConcat() {
 	// qux
 }
 
-func TestConcat(t *testing.T) {
+func TestFlatten(t *testing.T) {
 	cases := []struct {
 		desc      string
 		seq1      []string
@@ -159,7 +159,7 @@ func TestConcat(t *testing.T) {
 			seq1 := slices.Values(tc.seq1)
 			seq2 := slices.Values(tc.seq2)
 			seq := slices.Values([]iter.Seq[string]{seq1, seq2})
-			got := iterutil.Concat(seq)
+			got := iterutil.Flatten(seq)
 			assertEqual(t, got, tc.want, tc.breakWhen)
 		}
 		t.Run(tc.desc, f)

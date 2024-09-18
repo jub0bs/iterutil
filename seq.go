@@ -42,9 +42,9 @@ func Cons[E any](e E, seq iter.Seq[E]) iter.Seq[E] {
 	}
 }
 
-// Concat returns an iterator resulting from the concatenation of all iterators
+// Flatten returns an iterator resulting from the concatenation of all iterators
 // in seqs.
-func Concat[E any](seqs iter.Seq[iter.Seq[E]]) iter.Seq[E] {
+func Flatten[E any](seqs iter.Seq[iter.Seq[E]]) iter.Seq[E] {
 	return func(yield func(E) bool) {
 		for seq := range seqs {
 			for e := range seq {
