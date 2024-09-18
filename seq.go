@@ -42,23 +42,6 @@ func Cons[E any](e E, seq iter.Seq[E]) iter.Seq[E] {
 	}
 }
 
-// Append returns an iterator resulting from the concatenation of seq1 and
-// seq2.
-func Append[E any](seq1, seq2 iter.Seq[E]) iter.Seq[E] {
-	return func(yield func(E) bool) {
-		for e := range seq1 {
-			if !yield(e) {
-				return
-			}
-		}
-		for e := range seq2 {
-			if !yield(e) {
-				return
-			}
-		}
-	}
-}
-
 // Concat returns an iterator resulting from the concatenation of all iterators
 // in seqs.
 func Concat[E any](seqs iter.Seq[iter.Seq[E]]) iter.Seq[E] {
