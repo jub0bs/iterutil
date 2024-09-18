@@ -166,6 +166,57 @@ func TestFlatten(t *testing.T) {
 	}
 }
 
+func ExampleConcat() {
+	seq1 := slices.Values([]string{"foo", "bar"})
+	seq2 := slices.Values([]string{"baz", "qux"})
+	for s := range iterutil.Concat(seq1, seq2) {
+		fmt.Println(s)
+	}
+	// Output:
+	// foo
+	// bar
+	// baz
+	// qux
+}
+
+func TestConcat(t *testing.T) {
+	cases := []struct {
+		desc      string
+		seq1      []string
+		seq2      []string
+		breakWhen func(string) bool
+		want      []string
+	}{
+		{
+			desc:      "empty",
+			seq1:      []string{},
+			seq2:      []string{},
+			breakWhen: alwaysFalse[string],
+		}, {
+			desc:      "no break",
+			seq1:      []string{"one", "two", "three"},
+			seq2:      []string{"four", "five", "six"},
+			breakWhen: alwaysFalse[string],
+			want:      []string{"one", "two", "three", "four", "five", "six"},
+		}, {
+			desc:      "break early",
+			seq1:      []string{"one", "two", "three"},
+			seq2:      []string{"four", "five", "six"},
+			breakWhen: equal("three"),
+			want:      []string{"one", "two"},
+		},
+	}
+	for _, tc := range cases {
+		f := func(t *testing.T) {
+			seq1 := slices.Values(tc.seq1)
+			seq2 := slices.Values(tc.seq2)
+			got := iterutil.Concat(seq1, seq2)
+			assertEqual(t, got, tc.want, tc.breakWhen)
+		}
+		t.Run(tc.desc, f)
+	}
+}
+
 func ExampleMap() {
 	seq := slices.Values([]string{"one", "two", "three"})
 	length := func(s string) int { return len(s) }
