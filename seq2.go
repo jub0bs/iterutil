@@ -39,6 +39,8 @@ func Swap[K, V any](seq iter.Seq2[K, V]) iter.Seq2[V, K] {
 // accessed by the two functions next and stop
 // into a “push-style” iterator sequence.
 // Push essentially is the inverse of [iter.Pull2].
+// Note that you must consume the resulting iterator;
+// otherwise, the underlying pull-based iterator may leak.
 func Push2[K, V any](next func() (K, V, bool), stop func()) iter.Seq2[K, V] {
 	return func(yield func(K, V) bool) {
 		defer stop()

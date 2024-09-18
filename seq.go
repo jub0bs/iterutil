@@ -304,6 +304,8 @@ func Cycle[E any](seq iter.Seq[E]) iter.Seq[E] {
 // accessed by the two functions next and stop
 // into a “push-style” iterator sequence.
 // Push essentially is the inverse of [iter.Pull].
+// Note that you must consume the resulting iterator;
+// otherwise, the underlying pull-based iterator may leak.
 func Push[E any](next func() (E, bool), stop func()) iter.Seq[E] {
 	return func(yield func(E) bool) {
 		defer stop()
