@@ -42,62 +42,6 @@ func Cons[E any](e E, seq iter.Seq[E]) iter.Seq[E] {
 	}
 }
 
-// Head, if seq is non-empty, returns the head of seq and true;
-// otherwise, it returns the zero value and false.
-func Head[E any](seq iter.Seq[E]) (E, bool) {
-	for e := range seq {
-		return e, true
-	}
-	var zero E
-	return zero, false
-}
-
-// Tail, if seq is non-empty, returns an iterator composed of
-// all the elements of seq after the latter's head and true;
-// otherwise, it returns nil and false.
-func Tail[E any](seq iter.Seq[E]) (iter.Seq[E], bool) {
-	next, stop := iter.Pull(seq)
-	if _, ok := next(); !ok {
-		return nil, false
-	}
-	f := func(yield func(E) bool) {
-		defer stop()
-		for {
-			e, ok := next()
-			if !ok {
-				return
-			}
-			if !yield(e) {
-				return
-			}
-		}
-	}
-	return f, true
-}
-
-// Uncons, if seq is non-empty, returns the head and tail of seq and true;
-// otherwise, it returns the zero value, nil, and false.
-func Uncons[E any](seq iter.Seq[E]) (E, iter.Seq[E], bool) {
-	next, stop := iter.Pull(seq)
-	head, ok := next()
-	if !ok {
-		return head, nil, false
-	}
-	tail := func(yield func(E) bool) {
-		defer stop()
-		for {
-			e, ok := next()
-			if !ok {
-				return
-			}
-			if !yield(e) {
-				return
-			}
-		}
-	}
-	return head, tail, true
-}
-
 // Append returns an iterator resulting from the concatenation of seq1 and
 // seq2.
 func Append[E any](seq1, seq2 iter.Seq[E]) iter.Seq[E] {
