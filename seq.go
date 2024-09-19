@@ -269,10 +269,8 @@ func Repeat[E any](e E, count int) iter.Seq[E] {
 		}
 	}
 	return func(yield func(E) bool) {
-		for {
-			if !yield(e) {
-				return
-			}
+		for yield(e) {
+			// deliberately empty
 		}
 	}
 }
