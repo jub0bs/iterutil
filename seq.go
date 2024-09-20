@@ -272,7 +272,7 @@ func Contains[E comparable](seq iter.Seq[E], target E) bool {
 }
 
 // ContainsFunc reports whether at least one element e of seq satisfies p(e).
-func ContainsFunc[E comparable](seq iter.Seq[E], p func(E) bool) bool {
+func ContainsFunc[E any](seq iter.Seq[E], p func(E) bool) bool {
 	for e := range seq {
 		if p(e) {
 			return true
