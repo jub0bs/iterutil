@@ -7,8 +7,10 @@ type (
 	dwrapper interface{ Unwrap() error }
 )
 
-// AllErrors performs a preorder traversal of err and returns an iterator
+// AllErrors performs a [pre-order traversal] of err and returns an iterator
 // over its index-error pairs. For more context, see the [errors] package.
+//
+// [pre-order traversal]: https://en.wikipedia.org/wiki/Tree_traversal#Arbitrary_trees
 func AllErrors(err error) iter.Seq2[int, error] {
 	return func(yield func(int, error) bool) {
 		var i int
