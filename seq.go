@@ -117,19 +117,6 @@ func Filter[E any](seq iter.Seq[E], p func(E) bool) iter.Seq[E] {
 	}
 }
 
-// FlatMap maps f over seq and concatenates the resulting iterators.
-func FlatMap[A, B any](seq iter.Seq[A], f func(A) iter.Seq[B]) iter.Seq[B] {
-	return func(yield func(B) bool) {
-		for a := range seq {
-			for b := range f(a) {
-				if !yield(b) {
-					return
-				}
-			}
-		}
-	}
-}
-
 // TakeWhile returns the longest prefix of seq of elements that satisfy p.
 func TakeWhile[E any](seq iter.Seq[E], p func(E) bool) iter.Seq[E] {
 	return func(yield func(E) bool) {

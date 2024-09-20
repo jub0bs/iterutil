@@ -435,55 +435,6 @@ func TestFilter(t *testing.T) {
 	}
 }
 
-func ExampleFlatMap() {
-	seq := slices.Values([]int{0, 1, 2, 3})
-	repeatN := func(i int) iter.Seq[int] {
-		return slices.Values(slices.Repeat([]int{i}, i))
-	}
-	for i := range iterutil.FlatMap(seq, repeatN) {
-		fmt.Println(i)
-	}
-	// Output:
-	// 1
-	// 2
-	// 2
-	// 3
-	// 3
-	// 3
-}
-
-func TestFlatMap(t *testing.T) {
-	cases := []struct {
-		desc      string
-		elems     []string
-		f         func(string) iter.Seq[byte]
-		breakWhen func(byte) bool
-		want      []byte
-	}{
-		{
-			desc:      "no break",
-			elems:     []string{"one", "two", "three"},
-			f:         func(s string) iter.Seq[byte] { return slices.Values([]byte(s)) },
-			breakWhen: alwaysFalse[byte],
-			want:      []byte("one" + "two" + "three"),
-		}, {
-			desc:      "break early",
-			elems:     []string{"one", "two", "three"},
-			f:         func(s string) iter.Seq[byte] { return slices.Values([]byte(s)) },
-			breakWhen: equal(byte('w')),
-			want:      []byte("one" + "t"),
-		},
-	}
-	for _, tc := range cases {
-		f := func(t *testing.T) {
-			seq := slices.Values(tc.elems)
-			got := iterutil.FlatMap(seq, tc.f)
-			assertEqual(t, got, tc.want, tc.breakWhen)
-		}
-		t.Run(tc.desc, f)
-	}
-}
-
 func ExampleTakeWhile() {
 	seq := slices.Values([]string{"foo", "bar", "baz", "qux"})
 	isNotBaz := func(s string) bool { return s != "baz" }
