@@ -28,20 +28,6 @@ func SeqOf[E any](elems ...E) iter.Seq[E] {
 	}
 }
 
-// Cons returns an iterator whose head is e and whose tail is seq.
-func Cons[E any](e E, seq iter.Seq[E]) iter.Seq[E] {
-	return func(yield func(E) bool) {
-		if !yield(e) {
-			return
-		}
-		for e := range seq {
-			if !yield(e) {
-				return
-			}
-		}
-	}
-}
-
 // Concat returns an iterator concatenating the passed in iterators.
 func Concat[E any](seqs ...iter.Seq[E]) iter.Seq[E] {
 	return func(yield func(E) bool) {

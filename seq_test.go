@@ -64,55 +64,6 @@ func TestSeqOf(t *testing.T) {
 	}
 }
 
-func ExampleCons() {
-	seq := iterutil.Cons(0, slices.Values([]int{1, 2, 3}))
-	for i := range seq {
-		fmt.Println(i)
-	}
-	// Output:
-	// 0
-	// 1
-	// 2
-	// 3
-}
-
-func TestCons(t *testing.T) {
-	cases := []struct {
-		desc      string
-		first     string
-		rest      []string
-		breakWhen func(string) bool
-		want      []string
-	}{
-		{
-			desc:      "no break",
-			first:     "zero",
-			rest:      []string{"one", "two", "three"},
-			breakWhen: alwaysFalse[string],
-			want:      []string{"zero", "one", "two", "three"},
-		}, {
-			desc:      "break early",
-			first:     "zero",
-			breakWhen: equal("zero"),
-			rest:      []string{"one", "two", "three"},
-		}, {
-			desc:      "break early but later",
-			first:     "zero",
-			rest:      []string{"one", "two", "three"},
-			breakWhen: equal("two"),
-			want:      []string{"zero", "one"},
-		},
-	}
-	for _, tc := range cases {
-		f := func(t *testing.T) {
-			rest := slices.Values(tc.rest)
-			got := iterutil.Cons(tc.first, rest)
-			assertEqual(t, got, tc.want, tc.breakWhen)
-		}
-		t.Run(tc.desc, f)
-	}
-}
-
 func ExampleFlatten() {
 	seq1 := slices.Values([]string{"foo", "bar"})
 	seq2 := slices.Values([]string{"baz", "qux"})
