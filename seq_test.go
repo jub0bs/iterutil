@@ -66,6 +66,184 @@ func TestSeqOf(t *testing.T) {
 	}
 }
 
+func ExampleBetween() {
+	for i := range iterutil.Between(2, 9, 3) {
+		fmt.Println(i)
+	}
+	// Output:
+	// 2
+	// 5
+	// 8
+}
+
+func TestBetween(t *testing.T) {
+	cases := []struct {
+		desc       string
+		n, m, step int
+		breakWhen  func(int) bool
+		want       []int
+		wantPanic  bool
+	}{
+		{
+			desc:      "no break positive step n less than m",
+			n:         1,
+			m:         11,
+			step:      3,
+			breakWhen: alwaysFalse[int],
+			want:      []int{1, 4, 7, 10},
+		}, {
+			desc:      "break positive step n less than m",
+			n:         1,
+			m:         11,
+			step:      3,
+			breakWhen: equal(7),
+			want:      []int{1, 4},
+		}, {
+			desc:      "no break positive step n equal to m",
+			n:         11,
+			m:         11,
+			step:      3,
+			breakWhen: alwaysFalse[int],
+		}, {
+			desc:      "break positive step n equal to m",
+			n:         11,
+			m:         11,
+			step:      3,
+			breakWhen: equal(7),
+		}, {
+			desc:      "no break positive step n greater than m",
+			n:         11,
+			m:         1,
+			step:      3,
+			breakWhen: alwaysFalse[int],
+		}, {
+			desc:      "break positive step n greater than m",
+			n:         11,
+			m:         1,
+			step:      3,
+			breakWhen: equal(7),
+		}, {
+			desc:      "no break negative step n less than m",
+			n:         1,
+			m:         11,
+			step:      -3,
+			breakWhen: alwaysFalse[int],
+		}, {
+			desc:      "break negative step n less than m",
+			n:         1,
+			m:         11,
+			step:      -3,
+			breakWhen: equal(7),
+		}, {
+			desc:      "no break negative step n equal to m",
+			n:         11,
+			m:         11,
+			step:      -3,
+			breakWhen: alwaysFalse[int],
+		}, {
+			desc:      "break negative step n equal to m",
+			n:         11,
+			m:         11,
+			step:      -3,
+			breakWhen: equal(7),
+		}, {
+			desc:      "no break negative step n greater than m",
+			n:         11,
+			m:         1,
+			step:      -3,
+			breakWhen: alwaysFalse[int],
+			want:      []int{11, 8, 5, 2},
+		}, {
+			desc:      "break negative step n greater than m",
+			n:         11,
+			m:         1,
+			step:      -3,
+			breakWhen: equal(8),
+			want:      []int{11},
+		}, {
+			desc:      "zero step n less than m",
+			n:         1,
+			m:         11,
+			step:      0,
+			wantPanic: true,
+		}, {
+			desc:      "zero step n equal to m",
+			n:         11,
+			m:         1,
+			step:      0,
+			wantPanic: true,
+		}, {
+			desc:      "zero step n greater than m",
+			n:         11,
+			m:         11,
+			step:      0,
+			wantPanic: true,
+		},
+	}
+	for _, tc := range cases {
+		f := func(t *testing.T) {
+			if tc.wantPanic {
+				defer func() {
+					if recover() == nil {
+						t.Fatalf("got no panic; want panic")
+					}
+				}()
+			}
+			got := iterutil.Between(tc.n, tc.m, tc.step)
+			assertEqual(t, got, tc.want, tc.breakWhen)
+		}
+		t.Run(tc.desc, f)
+	}
+}
+
+func ExampleEnumerate() {
+	seq := slices.Values([]string{"foo", "bar", "baz"})
+	for i, v := range iterutil.Enumerate[int](seq) {
+		fmt.Println(i, v)
+	}
+	// Output:
+	// 0 foo
+	// 1 bar
+	// 2 baz
+}
+
+func TestEnumerate(t *testing.T) {
+	cases := []struct {
+		desc      string
+		elems     []string
+		breakWhen func(int, string) bool
+		want      []Pair[int, string]
+	}{
+		{
+			desc:      "no break",
+			elems:     []string{"zero", "one", "two", "three"},
+			breakWhen: alwaysFalse2[int, string],
+			want: []Pair[int, string]{
+				{0, "zero"},
+				{1, "one"},
+				{2, "two"},
+				{3, "three"},
+			},
+		}, {
+			desc:      "break early",
+			elems:     []string{"zero", "one", "two", "three"},
+			breakWhen: equal2(2, "two"),
+			want: []Pair[int, string]{
+				{0, "zero"},
+				{1, "one"},
+			},
+		},
+	}
+	for _, tc := range cases {
+		f := func(t *testing.T) {
+			seq := slices.Values(tc.elems)
+			got := iterutil.Enumerate[int](seq)
+			assertEqual2(t, got, tc.want, tc.breakWhen)
+		}
+		t.Run(tc.desc, f)
+	}
+}
+
 func ExampleFlatten() {
 	seq1 := slices.Values([]string{"foo", "bar"})
 	seq2 := slices.Values([]string{"baz", "qux"})

@@ -3,6 +3,8 @@ package iterutil
 import (
 	"cmp"
 	"iter"
+
+	"golang.org/x/exp/constraints"
 )
 
 // Empty returns an empty iterator.
@@ -25,6 +27,42 @@ func SeqOf[E any](elems ...E) iter.Seq[E] {
 			if !yield(e) {
 				return
 			}
+		}
+	}
+}
+
+// Between, if step is nonzero, returns an iterator
+// ranging from n (inclusive) to m (exclusive) in increments of step;
+// otherwise, it panics.
+func Between[I constraints.Integer](n, m, step I) iter.Seq[I] {
+	switch cmp.Compare(step, 0) {
+	default:
+		panic("step cannot be zero")
+	case 1: // ascending
+		return func(yield func(I) bool) {
+			for ; n < m && yield(n); n += step {
+				// deliberately empty
+			}
+		}
+	case -1: // descending
+		return func(yield func(I) bool) {
+			for ; n > m && yield(n); n += step {
+				// deliberately empty
+			}
+		}
+	}
+}
+
+// Enumerate returns an iterator over pairs of indices (starting at 0)
+// and elements of seq.
+func Enumerate[I constraints.Integer, E any](seq iter.Seq[E]) iter.Seq2[I, E] {
+	return func(yield func(I, E) bool) {
+		var i I
+		for v := range seq {
+			if !yield(i, v) {
+				return
+			}
+			i++
 		}
 	}
 }
