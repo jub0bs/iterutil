@@ -2,11 +2,6 @@ package iterutil
 
 import "iter"
 
-type (
-	bwrapper interface{ Unwrap() []error }
-	dwrapper interface{ Unwrap() error }
-)
-
 // AllErrors performs a [pre-order traversal] of err and returns an iterator
 // over its index-error pairs. For more context, see the [errors] package.
 //
@@ -19,7 +14,7 @@ func AllErrors(err error) iter.Seq2[int, error] {
 		}
 		i++
 		switch err := err.(type) {
-		case bwrapper:
+		case interface{ Unwrap() []error }:
 			for _, err := range err.Unwrap() {
 				for _, err := range AllErrors(err) {
 					if !yield(i, err) {
@@ -28,7 +23,7 @@ func AllErrors(err error) iter.Seq2[int, error] {
 					i++
 				}
 			}
-		case dwrapper:
+		case interface{ Unwrap() error }:
 			for _, err := range AllErrors(err.Unwrap()) {
 				if !yield(i, err) {
 					return
