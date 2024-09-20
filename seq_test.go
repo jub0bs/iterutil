@@ -516,14 +516,12 @@ func TestTake(t *testing.T) {
 		count     int
 		breakWhen func(string) bool
 		want      []string
-		panics    bool
 	}{
 		{
 			desc:      "negative count",
 			elems:     []string{"one", "two", "three"},
 			count:     -1,
 			breakWhen: alwaysFalse[string],
-			panics:    true,
 		}, {
 			desc:      "no break",
 			elems:     []string{"one", "two", "three"},
@@ -540,11 +538,6 @@ func TestTake(t *testing.T) {
 	}
 	for _, tc := range cases {
 		f := func(t *testing.T) {
-			defer func() {
-				if r := recover(); tc.panics && r == nil {
-					t.Errorf("got no panic; want panic")
-				}
-			}()
 			seq := slices.Values(tc.elems)
 			got := iterutil.Take(seq, tc.count)
 			assertEqual(t, got, tc.want, tc.breakWhen)
@@ -569,14 +562,13 @@ func TestDrop(t *testing.T) {
 		count     int
 		breakWhen func(string) bool
 		want      []string
-		panics    bool
 	}{
 		{
 			desc:      "negative count",
 			elems:     []string{"one", "two", "three"},
 			count:     -1,
 			breakWhen: alwaysFalse[string],
-			panics:    true,
+			want:      []string{"one", "two", "three"},
 		}, {
 			desc:      "no break",
 			elems:     []string{"one", "two", "three"},
@@ -593,11 +585,6 @@ func TestDrop(t *testing.T) {
 	}
 	for _, tc := range cases {
 		f := func(t *testing.T) {
-			defer func() {
-				if r := recover(); tc.panics && r == nil {
-					t.Errorf("got no panic; want panic")
-				}
-			}()
 			seq := slices.Values(tc.elems)
 			got := iterutil.Drop(seq, tc.count)
 			assertEqual(t, got, tc.want, tc.breakWhen)

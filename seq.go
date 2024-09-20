@@ -155,14 +155,9 @@ func Len[E any](seq iter.Seq[E]) int {
 	return n
 }
 
-// Take, if count is non-negative, returns
-// the prefix of seq of length count
-// or simply seq if seq contains fewer than count elements;
-// otherwise, it panics.
+// Take returns the prefix of seq
+// whose length is min(max(count, 0), seq.Len()).
 func Take[E any](seq iter.Seq[E], count int) iter.Seq[E] {
-	if count < 0 {
-		panic("cannot be negative")
-	}
 	return func(yield func(E) bool) {
 		for e := range seq {
 			count--
@@ -173,14 +168,9 @@ func Take[E any](seq iter.Seq[E], count int) iter.Seq[E] {
 	}
 }
 
-// Drop, if count is non-negative, returns
-// the suffix of seq after the first count elements
-// or simply an empty iterator if seq contains fewer than count elements;
-// otherwise, it panics.
+// Drop returns the suffix of seq
+// after the first min(max(count, 0), seq.Len()) elements.
 func Drop[E any](seq iter.Seq[E], count int) iter.Seq[E] {
-	if count < 0 {
-		panic("cannot be negative")
-	}
 	return func(yield func(E) bool) {
 		for e := range seq {
 			count--
