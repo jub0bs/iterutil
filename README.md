@@ -8,9 +8,8 @@
 [![codecov](https://codecov.io/gh/jub0bs/iterutil/branch/main/graph/badge.svg?token=N208BHWQTM)](https://app.codecov.io/gh/jub0bs/iterutil/tree/main)
 [![goreport](https://goreportcard.com/badge/jub0bs/iterutil)](https://goreportcard.com/report/jub0bs/iterutil)
 
-An experimental collection
-(partly inspired by [Haskell][haskell]'s [prelude][prelude])
-of utility functions for working with [Go][golang] [iterators].
+An experimental collection of utility functions (sources, combinators, sinks)
+for working with [Go][golang] [iterators].
 
 ## Installation
 
@@ -34,14 +33,17 @@ All source code is covered by the [MIT License][license].
 
 ## FAQ
 
+### What inspired this library?
+
+- [Haskell][haskell]'s [prelude][prelude]
+- the [slices][slices] and [maps][maps] packages
+- https://github.com/golang/go/issues/61898
+
 ### Can I depend on this library?
 
-You can, but at your own peril. As stated above, this library is experimental;
-more than anything else, it's an excuse for me to
-flex my functional-programming muscles and
-familiarize myself with [Go 1.23's iterators][iterators].
+You can, but at your own peril.
 At this early stage, I reserve the right, upon new releases, to break the API:
-some functions may see their names and/or signatures change,
+some functions may see their names, signatures, and/or behaviors change,
 and some functions may be removed altogether.
 
 If you need a few functions from this library but do not want to depend on it,
@@ -51,17 +53,16 @@ feel free to copy their sources in your project;
 ### How should I use this library?
 
 Above all, use it with parsimony.
-The functional style displayed by this library is far from ideal in Go,
-for several reasons: 
+Chaining many combinators is far from ideal for several reasons:
 
 - code readability may suffer, in part
-  because Go's idiosyncracies hinder a "[fluent interface][fluent]" style and
+  because Go's idiosyncracies hinder "[fluent chaining][fluent]" and
   because Go lacks a concise notation for anonymous functions;
-- a more classic and imperative style is likely to prove much more performant;
+- a more classic and imperative style is likely to prove more performant;
 - Go lacks the powerful [laziness][lazy] of [Haskell][haskell].
 
 Bear in mind that the existence of this library is no license
-to adopt a functional style all over your codebase!
+to overuse combinator chaining in your codebase!
 
 [copying]: https://www.youtube.com/watch?v=PAAkCSZUG1c&t=568s
 [fluent]: https://en.wikipedia.org/wiki/Fluent_interface
@@ -70,5 +71,7 @@ to adopt a functional style all over your codebase!
 [iterators]: https://go.dev/blog/range-functions
 [lazy]: https://en.wikipedia.org/wiki/Lazy_evaluation
 [license]: https://github.com/jub0bs/iterutil/blob/main/LICENSE
+[maps]: https://pkg.go.dev/maps
 [pkgsite]: https://pkg.go.dev/github.com/jub0bs/iterutil
 [prelude]: https://downloads.haskell.org/ghc/9.8.2/docs/libraries/base-4.19.1.0-179c/Prelude.html
+[slices]: https://pkg.go.dev/slices
