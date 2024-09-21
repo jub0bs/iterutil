@@ -3,14 +3,7 @@ package iterutil
 import (
 	"cmp"
 	"iter"
-
-	"golang.org/x/exp/constraints"
 )
-
-// Empty returns an empty iterator.
-func Empty[E any]() iter.Seq[E] {
-	return func(_ func(E) bool) {}
-}
 
 // IsEmpty reports whether seq is an empty iterator.
 func IsEmpty[E any](seq iter.Seq[E]) bool {
@@ -18,131 +11,6 @@ func IsEmpty[E any](seq iter.Seq[E]) bool {
 		return false
 	}
 	return true
-}
-
-// SeqOf returns an iterator composed of elems.
-func SeqOf[E any](elems ...E) iter.Seq[E] {
-	return func(yield func(E) bool) {
-		for _, e := range elems {
-			if !yield(e) {
-				return
-			}
-		}
-	}
-}
-
-// Between, if step is nonzero, returns an iterator
-// ranging from n (inclusive) to m (exclusive) in increments of step;
-// otherwise, it panics.
-func Between[I constraints.Integer](n, m, step I) iter.Seq[I] {
-	switch cmp.Compare(step, 0) {
-	default:
-		panic("step cannot be zero")
-	case 1: // ascending
-		return func(yield func(I) bool) {
-			for ; n < m && yield(n); n += step {
-				// deliberately empty
-			}
-		}
-	case -1: // descending
-		return func(yield func(I) bool) {
-			for ; n > m && yield(n); n += step {
-				// deliberately empty
-			}
-		}
-	}
-}
-
-// Enumerate returns an iterator over pairs of indices (starting at 0)
-// and elements of seq.
-func Enumerate[I constraints.Integer, E any](seq iter.Seq[E]) iter.Seq2[I, E] {
-	return func(yield func(I, E) bool) {
-		var i I
-		for v := range seq {
-			if !yield(i, v) {
-				return
-			}
-			i++
-		}
-	}
-}
-
-// Concat returns an iterator concatenating the passed in iterators.
-func Concat[E any](seqs ...iter.Seq[E]) iter.Seq[E] {
-	return func(yield func(E) bool) {
-		for _, seq := range seqs {
-			for e := range seq {
-				if !yield(e) {
-					return
-				}
-			}
-		}
-	}
-}
-
-// Flatten returns an iterator resulting from the concatenation of all iterators
-// in seqs.
-func Flatten[E any](seqs iter.Seq[iter.Seq[E]]) iter.Seq[E] {
-	return func(yield func(E) bool) {
-		for seq := range seqs {
-			for e := range seq {
-				if !yield(e) {
-					return
-				}
-			}
-		}
-	}
-}
-
-// Map returns the result of applying f to each element of seq.
-func Map[A, B any](seq iter.Seq[A], f func(A) B) iter.Seq[B] {
-	return func(yield func(B) bool) {
-		for a := range seq {
-			if !yield(f(a)) {
-				return
-			}
-		}
-	}
-}
-
-// Filter returns an iterator composed of the elements of seq that
-// satisfy predicate p.
-func Filter[E any](seq iter.Seq[E], p func(E) bool) iter.Seq[E] {
-	return func(yield func(E) bool) {
-		for e := range seq {
-			if p(e) && !yield(e) {
-				return
-			}
-		}
-	}
-}
-
-// TakeWhile returns the longest prefix of seq of elements that satisfy p.
-func TakeWhile[E any](seq iter.Seq[E], p func(E) bool) iter.Seq[E] {
-	return func(yield func(E) bool) {
-		for e := range seq {
-			if !p(e) || !yield(e) {
-				return
-			}
-		}
-	}
-}
-
-// DropWhile returns the suffix remaining after the longest prefix of seq
-// of elements that satisfy p.
-func DropWhile[E any](seq iter.Seq[E], p func(E) bool) iter.Seq[E] {
-	return func(yield func(E) bool) {
-		var doneDropping bool
-		for e := range seq {
-			if !doneDropping && p(e) {
-				continue
-			}
-			doneDropping = true
-			if !yield(e) {
-				return
-			}
-		}
-	}
 }
 
 // Len returns the number of elements in seq.
@@ -153,35 +21,6 @@ func Len[E any](seq iter.Seq[E]) int {
 		n++
 	}
 	return n
-}
-
-// Take returns the prefix of seq
-// whose length is min(max(count, 0), seq.Len()).
-func Take[E any](seq iter.Seq[E], count int) iter.Seq[E] {
-	return func(yield func(E) bool) {
-		for e := range seq {
-			count--
-			if count < 0 || !yield(e) {
-				return
-			}
-		}
-	}
-}
-
-// Drop returns the suffix of seq
-// after the first min(max(count, 0), seq.Len()) elements.
-func Drop[E any](seq iter.Seq[E], count int) iter.Seq[E] {
-	return func(yield func(E) bool) {
-		for e := range seq {
-			count--
-			if 0 <= count {
-				continue
-			}
-			if !yield(e) {
-				return
-			}
-		}
-	}
 }
 
 // At, if count is non-negative, returns
@@ -426,83 +265,12 @@ func Foldl[A, B any](seq iter.Seq[A], b B, f func(B, A) B) B {
 	return b
 }
 
-// ZipWith zips seq1 and seq2 with function f.
-func ZipWith[A, B, C any](seq1 iter.Seq[A], seq2 iter.Seq[B], f func(A, B) C) iter.Seq[C] {
-	return func(yield func(C) bool) {
-		next1, stop1 := iter.Pull(seq1)
-		defer stop1()
-		next2, stop2 := iter.Pull(seq2)
-		defer stop2()
-		for {
-			a, ok1 := next1()
-			b, ok2 := next2()
-			if !ok1 || !ok2 {
-				return
-			}
-			if !yield(f(a, b)) {
-				return
-			}
-		}
+// Len2 returns the number of elements in seq.
+// It terminates if and only if seq is finite.
+func Len2[K, V any](seq iter.Seq2[K, V]) int {
+	var n int
+	for range seq {
+		n++
 	}
-}
-
-// Repeat returns an iterator whose values are invariably e.
-// the resulting iterator, if count is non-negative, is of length count;
-// otherwise, it's infinite.
-func Repeat[E any](e E, count int) iter.Seq[E] {
-	if 0 <= count {
-		return func(yield func(E) bool) {
-			for range count {
-				if !yield(e) {
-					return
-				}
-			}
-		}
-	}
-	return func(yield func(E) bool) {
-		for yield(e) {
-			// deliberately empty
-		}
-	}
-}
-
-// Iterate returns an infinite iterator composed of repeated applications
-// of f to e.
-func Iterate[E any](e E, f func(E) E) iter.Seq[E] {
-	return func(yield func(E) bool) {
-		for yield(e) {
-			e = f(e)
-		}
-	}
-}
-
-// Cycle returns an iterator that infinitely repeats seq.
-func Cycle[E any](seq iter.Seq[E]) iter.Seq[E] {
-	return func(yield func(E) bool) {
-		for {
-			for e := range seq {
-				if !yield(e) {
-					return
-				}
-			}
-		}
-	}
-}
-
-// Push converts the “pull-style” iterator
-// accessed by the two functions next and stop
-// into a “push-style” iterator sequence.
-// Push essentially is the inverse of [iter.Pull].
-// Note that you must consume the resulting iterator;
-// otherwise, the underlying pull-based iterator may leak.
-func Push[E any](next func() (E, bool), stop func()) iter.Seq[E] {
-	return func(yield func(E) bool) {
-		defer stop()
-		for {
-			e, ok := next()
-			if !ok || !yield(e) {
-				return
-			}
-		}
-	}
+	return n
 }
