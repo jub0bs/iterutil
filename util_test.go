@@ -24,7 +24,7 @@ func assertEqual[E comparable](
 			t.Fatalf("too many elements: got %v...; want %v", es, want)
 		}
 		if e != want[i] {
-			t.Fatalf("got %v...; want %v...", es, want)
+			t.Fatalf("unexpected element: got %v...; want %v...", es, want[:i+1])
 		}
 		i++
 	}
@@ -62,7 +62,7 @@ func assertEqual2[K, V comparable](
 			t.Fatalf("too many pairs: got %v...; want %v", pairs, want)
 		}
 		if k != want[i].k || v != want[i].v {
-			t.Fatalf("got %v...; want %v...", pairs, want)
+			t.Fatalf("unexpected pair: got %v...; want %v...", pairs, want[:i+1])
 		}
 		i++
 	}
