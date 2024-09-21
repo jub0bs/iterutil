@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.0] (2024-09-16)
 
-## Added
+### Added
 
 - **Tests**: augment test suite to reach 100% code coverage.
 
