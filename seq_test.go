@@ -956,9 +956,8 @@ func TestZipWith(t *testing.T) {
 }
 
 func ExampleRepeat() {
-	seq := iterutil.Repeat("foo", -1)
 	var count int
-	for s := range seq {
+	for s := range iterutil.Repeat("foo", -1) {
 		count++
 		if count > 3 {
 			break
@@ -1010,8 +1009,7 @@ func TestRepeat(t *testing.T) {
 
 func ExampleIterate() {
 	double := func(i int) int { return i + i }
-	seq := iterutil.Iterate(1, double)
-	for i := range seq {
+	for i := range iterutil.Iterate(1, double) {
 		if i > 20 {
 			break
 		}
@@ -1027,9 +1025,8 @@ func ExampleIterate() {
 
 func ExampleCycle() {
 	seq := slices.Values([]int{1, 2, 3})
-	cycle := iterutil.Cycle(seq)
 	var count int
-	for i := range cycle {
+	for i := range iterutil.Cycle(seq) {
 		count++
 		if count > 5 {
 			break
