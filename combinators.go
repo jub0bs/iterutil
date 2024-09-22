@@ -99,7 +99,7 @@ func DropWhile[E any](seq iter.Seq[E], p func(E) bool) iter.Seq[E] {
 }
 
 // Take returns the prefix of seq
-// whose length is min(max(count, 0), seq.Len()).
+// whose length is min(max(count, 0), Len(seq)).
 func Take[E any](seq iter.Seq[E], count int) iter.Seq[E] {
 	return func(yield func(E) bool) {
 		for e := range seq {
@@ -112,7 +112,7 @@ func Take[E any](seq iter.Seq[E], count int) iter.Seq[E] {
 }
 
 // Drop returns the suffix of seq
-// after the first min(max(count, 0), seq.Len()) elements.
+// after the first min(max(count, 0), Len(seq)) elements.
 func Drop[E any](seq iter.Seq[E], count int) iter.Seq[E] {
 	return func(yield func(E) bool) {
 		for e := range seq {
