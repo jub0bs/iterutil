@@ -326,10 +326,10 @@ func TestIsSortedFunc(t *testing.T) {
 	}
 }
 
-func ExampleFoldl() {
+func ExampleReduce() {
 	seq := slices.Values([]int{1, 2, 3, 4, 5, 6})
 	plus := func(i, j int) int { return i + j }
-	sum := iterutil.Foldl(seq, 0, plus)
+	sum := iterutil.Reduce(seq, 0, plus)
 	fmt.Println(sum)
 	// Output: 21
 }

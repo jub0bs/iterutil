@@ -264,14 +264,14 @@ func IsSortedFunc[E any](seq iter.Seq[E], cmp func(E, E) int) bool {
 	return true
 }
 
-// Foldl performs a [left-associative] [fold] of seq using
+// Reduce performs a [left-associative] [fold] of seq using
 // b as the initial value and
 // f as the left-associative binary operation.
 // It terminates if and only if seq is finite.
 //
 // [fold]: https://en.wikipedia.org/wiki/Fold_(higher-order_function)
 // [left-associative]: https://en.wikipedia.org/wiki/Associative_property#Notation_for_non-associative_operations
-func Foldl[A, B any](seq iter.Seq[A], b B, f func(B, A) B) B {
+func Reduce[A, B any](seq iter.Seq[A], b B, f func(B, A) B) B {
 	for a := range seq {
 		b = f(b, a)
 	}
