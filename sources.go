@@ -48,7 +48,7 @@ func Between[I constraints.Integer](n, m, step I) iter.Seq[I] {
 }
 
 // Repeat returns an iterator whose values are invariably e.
-// the resulting iterator, if count is non-negative, is of length count;
+// The resulting iterator, if count is non-negative, is of length count;
 // otherwise, it's infinite.
 func Repeat[E any](e E, count int) iter.Seq[E] {
 	if 0 <= count {
