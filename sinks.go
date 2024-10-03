@@ -3,6 +3,8 @@ package iterutil
 import (
 	"cmp"
 	"iter"
+
+	"golang.org/x/exp/constraints"
 )
 
 // IsEmpty reports whether seq is an empty iterator.
@@ -27,7 +29,7 @@ func Len[E any](seq iter.Seq[E]) int {
 // the element at index n in seq and true
 // or the zero value and false if seq contains fewer than count elements;
 // otherwise, it panics.
-func At[E any](seq iter.Seq[E], n int) (e E, ok bool) {
+func At[I constraints.Integer, E any](seq iter.Seq[E], n I) (e E, ok bool) {
 	if n < 0 {
 		panic("cannot be negative")
 	}
