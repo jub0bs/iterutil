@@ -357,7 +357,7 @@ func ExampleSortedFuncFromMap_incorrect() {
 	for k, v := range iterutil.SortedFuncFromMap(m, lenCmp) {
 		fmt.Println(k, v)
 	}
-	// Consequently, the output is undeterministic; it may be either
+	// Consequently, the output is nondeterministic; it may be either
 	//
 	// one 1
 	// two 2
