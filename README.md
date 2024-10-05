@@ -17,7 +17,7 @@ for working with [Go][golang] [iterators].
 go get github.com/jub0bs/iterutil
 ```
 
-jub0bs/iterutil requires Go 1.23 or above.
+jub0bs/iterutil requires Go 1.23.2 or above.
 
 ## Documentation
 
