@@ -27,7 +27,7 @@ func Len[E any](seq iter.Seq[E]) int {
 
 // At, if count is non-negative, returns
 // the element at index n in seq and true
-// or the zero value and false if seq contains fewer than count elements;
+// or the zero value and false if seq contains fewer than n+1 elements;
 // otherwise, it panics.
 func At[I constraints.Integer, E any](seq iter.Seq[E], n I) (e E, ok bool) {
 	if n < 0 {
