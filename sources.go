@@ -28,7 +28,7 @@ func SeqOf[E any](elems ...E) iter.Seq[E] {
 // Between, if step is nonzero, returns an iterator
 // ranging from n (inclusive) to m (exclusive) in increments of step;
 // otherwise, it panics.
-func Between[I constraints.Integer](n, m, step I) iter.Seq[I] {
+func Between[I constraints.Signed](n, m, step I) iter.Seq[I] {
 	switch cmp.Compare(step, 0) {
 	default:
 		panic("step cannot be zero")
