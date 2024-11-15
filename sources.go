@@ -3,7 +3,6 @@ package iterutil
 import (
 	"cmp"
 	"iter"
-	"maps"
 	"slices"
 
 	"golang.org/x/exp/constraints"
@@ -101,7 +100,7 @@ func SortedFromMap[M ~map[K]V, K cmp.Ordered, V any](m M) iter.Seq2[K, V] {
 		// See https://github.com/golang/go/issues/61899#issuecomment-2198727055.
 		ks := keys(m)
 		slices.Sort(ks)
-		for _, k := range slices.Sorted(maps.Keys(m)) {
+		for _, k := range ks {
 			if !yield(k, m[k]) {
 				return
 			}
