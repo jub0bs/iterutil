@@ -120,8 +120,8 @@ func Take[I constraints.Integer, E any](seq iter.Seq[E], count I) iter.Seq[E] {
 func Drop[I constraints.Integer, E any](seq iter.Seq[E], count I) iter.Seq[E] {
 	return func(yield func(E) bool) {
 		for e := range seq {
-			count--
-			if 0 <= count {
+			if count > 0 {
+				count--
 				continue
 			}
 			if !yield(e) {

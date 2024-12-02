@@ -388,7 +388,7 @@ func ExampleDrop() {
 }
 
 func TestDrop(t *testing.T) {
-	cases := []struct {
+	intCases := []struct {
 		desc      string
 		elems     []string
 		count     int
@@ -415,7 +415,36 @@ func TestDrop(t *testing.T) {
 			want:      []string{"three"},
 		},
 	}
-	for _, tc := range cases {
+	for _, tc := range intCases {
+		f := func(t *testing.T) {
+			seq := slices.Values(tc.elems)
+			got := iterutil.Drop(seq, tc.count)
+			assertEqual(t, got, tc.want, tc.breakWhen)
+		}
+		t.Run(tc.desc, f)
+	}
+	uintCases := []struct {
+		desc      string
+		elems     []string
+		count     uint
+		breakWhen func(string) bool
+		want      []string
+	}{
+		{
+			desc:      "no break",
+			elems:     []string{"one", "two", "three"},
+			count:     2,
+			breakWhen: alwaysFalse[string],
+			want:      []string{"three"},
+		}, {
+			desc:      "break early",
+			elems:     []string{"one", "two", "three", "four"},
+			count:     2,
+			breakWhen: equal("four"),
+			want:      []string{"three"},
+		},
+	}
+	for _, tc := range uintCases {
 		f := func(t *testing.T) {
 			seq := slices.Values(tc.elems)
 			got := iterutil.Drop(seq, tc.count)
