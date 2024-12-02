@@ -201,7 +201,7 @@ func ExampleRepeat() {
 }
 
 func TestRepeat(t *testing.T) {
-	cases := []struct {
+	intCases := []struct {
 		desc      string
 		elem      string
 		count     int
@@ -228,7 +228,35 @@ func TestRepeat(t *testing.T) {
 			want:      []string{"foo", "foo"},
 		},
 	}
-	for _, tc := range cases {
+	for _, tc := range intCases {
+		f := func(t *testing.T) {
+			got := iterutil.Repeat(tc.elem, tc.count)
+			assertEqual(t, got, tc.want, tc.breakWhen)
+		}
+		t.Run(tc.desc, f)
+	}
+	uintCases := []struct {
+		desc      string
+		elem      string
+		count     uint
+		breakWhen func(string) bool
+		want      []string
+	}{
+		{
+			desc:      "finite no break",
+			elem:      "foo",
+			count:     3,
+			breakWhen: alwaysFalse[string],
+			want:      []string{"foo", "foo", "foo"},
+		}, {
+			desc:      "finite break early",
+			elem:      "foo",
+			count:     3,
+			breakWhen: falseAfterN[string](2),
+			want:      []string{"foo", "foo"},
+		},
+	}
+	for _, tc := range uintCases {
 		f := func(t *testing.T) {
 			got := iterutil.Repeat(tc.elem, tc.count)
 			assertEqual(t, got, tc.want, tc.breakWhen)

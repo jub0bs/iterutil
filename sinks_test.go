@@ -38,7 +38,7 @@ func ExampleAt() {
 }
 
 func TestAt(t *testing.T) {
-	cases := []struct {
+	intCases := []struct {
 		desc   string
 		elems  []string
 		n      int
@@ -63,13 +63,43 @@ func TestAt(t *testing.T) {
 			n:     4,
 		},
 	}
-	for _, tc := range cases {
+	for _, tc := range intCases {
 		f := func(t *testing.T) {
 			defer func() {
 				if r := recover(); tc.panics && r == nil {
 					t.Errorf("got no panic; want panic")
 				}
 			}()
+			seq := slices.Values(tc.elems)
+			s, ok := iterutil.At(seq, tc.n)
+			if s != tc.want || ok != tc.ok {
+				t.Fatalf("got %s, %t; want %s, %t", s, ok, tc.want, tc.ok)
+			}
+
+		}
+		t.Run(tc.desc, f)
+	}
+	uintCases := []struct {
+		desc  string
+		elems []string
+		n     uint
+		want  string
+		ok    bool
+	}{
+		{
+			desc:  "within bounds",
+			elems: []string{"one", "two", "three"},
+			n:     2,
+			want:  "three",
+			ok:    true,
+		}, {
+			desc:  "out of bounds",
+			elems: []string{"one", "two", "three"},
+			n:     4,
+		},
+	}
+	for _, tc := range uintCases {
+		f := func(t *testing.T) {
 			seq := slices.Values(tc.elems)
 			s, ok := iterutil.At(seq, tc.n)
 			if s != tc.want || ok != tc.ok {

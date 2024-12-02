@@ -21,7 +21,7 @@ func ExampleEnumerate() {
 }
 
 func TestEnumerate(t *testing.T) {
-	cases := []struct {
+	intCases := []struct {
 		desc      string
 		elems     []string
 		breakWhen func(int, string) bool
@@ -47,11 +47,45 @@ func TestEnumerate(t *testing.T) {
 			},
 		},
 	}
-	for _, tc := range cases {
+	for _, tc := range intCases {
 		f := func(t *testing.T) {
 			seq := slices.Values(tc.elems)
 			got := iterutil.Enumerate[int](seq)
 			assertEqual2(t, got, tc.want, tc.breakWhen)
+		}
+		t.Run(tc.desc, f)
+	}
+	uintCases := []struct {
+		desc      string
+		elems     []string
+		breakWhen func(uint, string) bool
+		want      []Pair[uint, string]
+	}{
+		{
+			desc:      "no break",
+			elems:     []string{"zero", "one", "two", "three"},
+			breakWhen: alwaysFalse2[uint, string],
+			want: []Pair[uint, string]{
+				{0, "zero"},
+				{1, "one"},
+				{2, "two"},
+				{3, "three"},
+			},
+		}, {
+			desc:      "break early",
+			elems:     []string{"zero", "one", "two", "three"},
+			breakWhen: equal2[uint](2, "two"),
+			want: []Pair[uint, string]{
+				{0, "zero"},
+				{1, "one"},
+			},
+		},
+	}
+	for _, tc := range uintCases {
+		f := func(t *testing.T) {
+			seq := slices.Values(tc.elems)
+			got := iterutil.Enumerate[uint](seq)
+			assertEqual2[uint](t, got, tc.want, tc.breakWhen)
 		}
 		t.Run(tc.desc, f)
 	}
