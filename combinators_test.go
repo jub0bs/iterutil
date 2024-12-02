@@ -313,7 +313,7 @@ func ExampleTake() {
 }
 
 func TestTake(t *testing.T) {
-	cases := []struct {
+	intCases := []struct {
 		desc      string
 		elems     []string
 		count     int
@@ -339,7 +339,36 @@ func TestTake(t *testing.T) {
 			want:      []string{"one"},
 		},
 	}
-	for _, tc := range cases {
+	for _, tc := range intCases {
+		f := func(t *testing.T) {
+			seq := slices.Values(tc.elems)
+			got := iterutil.Take(seq, tc.count)
+			assertEqual(t, got, tc.want, tc.breakWhen)
+		}
+		t.Run(tc.desc, f)
+	}
+	uintCases := []struct {
+		desc      string
+		elems     []string
+		count     uint
+		breakWhen func(string) bool
+		want      []string
+	}{
+		{
+			desc:      "uint no break",
+			elems:     []string{"one", "two", "three"},
+			count:     2,
+			breakWhen: alwaysFalse[string],
+			want:      []string{"one", "two"},
+		}, {
+			desc:      "uint break early",
+			elems:     []string{"one", "two", "three"},
+			count:     3,
+			breakWhen: equal("two"),
+			want:      []string{"one"},
+		},
+	}
+	for _, tc := range uintCases {
 		f := func(t *testing.T) {
 			seq := slices.Values(tc.elems)
 			got := iterutil.Take(seq, tc.count)

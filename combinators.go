@@ -103,10 +103,14 @@ func DropWhile[E any](seq iter.Seq[E], p func(E) bool) iter.Seq[E] {
 func Take[I constraints.Integer, E any](seq iter.Seq[E], count I) iter.Seq[E] {
 	return func(yield func(E) bool) {
 		for e := range seq {
-			count--
-			if count < 0 || !yield(e) {
-				return
+			if count > 0 {
+				if !yield(e) {
+					return
+				}
+				count--
+				continue
 			}
+			return
 		}
 	}
 }
