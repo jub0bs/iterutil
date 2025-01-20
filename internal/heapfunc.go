@@ -1,17 +1,19 @@
 package internal
 
-import (
-	"cmp"
-	"iter"
-)
+import "iter"
 
-// specialized version (for better performance)
-type Heap[T cmp.Ordered] []T
+type HeapFunc[T any] struct {
+	s       []T
+	compare func(x, y T) int
+}
 
-func NewHeap[T cmp.Ordered](vs []T) Heap[T] {
-	h := Heap[T](vs)
+func NewHeapFunc[T any](vs []T, compare func(T, T) int) HeapFunc[T] {
+	h := HeapFunc[T]{
+		s:       vs,
+		compare: compare,
+	}
 	// heapify
-	n := len(h)
+	n := h.len()
 	for i := n/2 - 1; i >= 0; i-- { // n/2-1: last (in depth order) parent
 		h.down(i, n)
 	}
@@ -21,9 +23,9 @@ func NewHeap[T cmp.Ordered](vs []T) Heap[T] {
 // Note: in order to prevent a func literal from escaping to the heap,
 // we deliberately design this method as an iter.Seq[T] rather than
 // as a iter.Seq[T] factory.
-func (h Heap[T]) Iterator(yield func(T) bool) {
+func (h HeapFunc[T]) Iterator(yield func(T) bool) {
 	var v T
-	for range len(h) {
+	for range h.len() {
 		v, h = h.pop()
 		if !yield(v) {
 			break
@@ -31,28 +33,32 @@ func (h Heap[T]) Iterator(yield func(T) bool) {
 	}
 }
 
-var _ iter.Seq[int] = Heap[int]{}.Iterator // compile-time check
+var _ iter.Seq[int] = HeapFunc[int]{}.Iterator // compile-time check
 
-func (h Heap[_]) less(i, j int) bool {
-	return h[i] < h[j]
+func (h HeapFunc[_]) less(i, j int) bool {
+	return h.compare(h.s[i], h.s[j]) < 0
 }
 
-func (h Heap[_]) swap(i, j int) {
-	h[i], h[j] = h[j], h[i]
+func (h HeapFunc[_]) swap(i, j int) {
+	h.s[i], h.s[j] = h.s[j], h.s[i]
+}
+
+func (h HeapFunc[_]) len() int {
+	return len(h.s)
 }
 
 // Note: this implementation gets rid of one level of indirection compared to
 // container/heap's implementation.
-func (h Heap[T]) pop() (T, Heap[T]) {
-	n := len(h) - 1
+func (h HeapFunc[T]) pop() (T, HeapFunc[T]) {
+	n := h.len() - 1
 	h.swap(0, n)
 	h.down(0, n)
-	x := h[n]
-	h = h[0:n] // TODO: should the element of index n in h.s be cleared?
+	x := h.s[n]
+	h.s = h.s[0:n] // TODO: should the element of index n in h.s be cleared?
 	return x, h
 }
 
-func (h Heap[_]) down(i, n int) {
+func (h HeapFunc[_]) down(i, n int) {
 	for {
 		j1 := 2*i + 1
 		if j1 >= n || j1 < 0 { // j1 < 0 after int overflow

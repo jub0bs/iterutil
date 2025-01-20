@@ -8,7 +8,7 @@ import (
 	"github.com/jub0bs/iterutil/internal"
 )
 
-func TestHeap(t *testing.T) {
+func TestHeapFunc(t *testing.T) {
 	cases := []struct {
 		desc      string
 		s         []int
@@ -26,7 +26,7 @@ func TestHeap(t *testing.T) {
 	}
 	for _, tc := range cases {
 		f := func(t *testing.T) {
-			seq := internal.NewHeap(tc.s).Iterator
+			seq := internal.NewHeapFunc(tc.s, cmp.Compare).Iterator
 			var got []int
 			for v := range seq {
 				if tc.breakWhen(v) {

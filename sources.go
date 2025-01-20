@@ -92,22 +92,6 @@ func Cycle[E any](seq iter.Seq[E]) iter.Seq[E] {
 // SortedFromMap returns an iterator over the key-value pairs in m
 // ordered by its keys.
 func SortedFromMap[M ~map[K]V, K cmp.Ordered, V any](m M) iter.Seq2[K, V] {
-	return sortedFromMapFunc(m, cmp.Compare)
-}
-
-// SortedFromMapFunc returns an iterator over the key-value pairs in m
-// ordered by its keys, using cmp as comparison function.
-//
-// Note that, for a deterministic behavior,
-// cmp must define a [total order] on K;
-// for more details, see the testable example labeled "incorrect".
-//
-// [total order]: https://en.wikipedia.org/wiki/Total_order
-func SortedFromMapFunc[M ~map[K]V, K comparable, V any](m M, cmp func(K, K) int) iter.Seq2[K, V] {
-	return sortedFromMapFunc(m, cmp)
-}
-
-func sortedFromMapFunc[M ~map[K]V, K comparable, V any](m M, cmp func(K, K) int) iter.Seq2[K, V] {
 	return func(yield func(K, V) bool) {
 		// One possibility would be to simply iterate over
 		// slices.Sorted(maps.Keys(m)),
@@ -124,15 +108,37 @@ func sortedFromMapFunc[M ~map[K]V, K comparable, V any](m M, cmp func(K, K) int)
 		// The overall worst-case time complexity is O(n + k*log(n)), where
 		//  - n is the number of keys in the map,
 		//  - k is the number of pairs pushed to the iterator's yield function.
-		keys := make([]K, 0, len(m))
-		for k := range m {
-			keys = append(keys, k)
-		}
-		heap := internal.NewHeap(keys, cmp)
-		for k := range heap.Iterator {
+		for k := range internal.NewHeap(keys(m)).Iterator {
 			if !yield(k, m[k]) {
 				return
 			}
 		}
 	}
+}
+
+// SortedFromMapFunc returns an iterator over the key-value pairs in m
+// ordered by its keys, using cmp as comparison function.
+//
+// Note that, for a deterministic behavior,
+// cmp must define a [total order] on K;
+// for more details, see the testable example labeled "incorrect".
+//
+// [total order]: https://en.wikipedia.org/wiki/Total_order
+func SortedFromMapFunc[M ~map[K]V, K comparable, V any](m M, cmp func(K, K) int) iter.Seq2[K, V] {
+	return func(yield func(K, V) bool) {
+		// see implementation comment in SortedFromMap
+		for k := range internal.NewHeapFunc(keys(m), cmp).Iterator {
+			if !yield(k, m[k]) {
+				return
+			}
+		}
+	}
+}
+
+func keys[K comparable, V any](m map[K]V) []K {
+	ks := make([]K, 0, len(m))
+	for k := range m {
+		ks = append(ks, k)
+	}
+	return ks
 }
