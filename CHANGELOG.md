@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] (2025-01-20)
+
+## Fixed
+
+- **Bug**: Functions `Take` and `Drop` would previously produce incorrect
+  results when used with unsigned integers.
+
+## Added
+
+- **API**: function `SortedFromMapFunc` (renamed from `SortedFuncFromMap`)
+- **Tests**: Add tests for cases where `uint` is used as type argument for
+  type parameters constrained by
+  [`golang.org/x/exp/constraints.Integer`][constraints.Integer].
+- **Tests**: Add benchmarks for `SortedFromMap`.
+
+### Changed
+
+- **Dependencies**: Go 1.23.2 (or above) is now required.
+- **Dependencies**: Update golang.org/x/exp to latest.
+- **API** (breaking change): The parameters of `Between` are now constrained by
+  [`golang.org/x/exp/constraints.Signed`][constraints.Signed] rather than by
+  [`golang.org/x/exp/constraints.Integer`][constraints.Integer].
+- **Performance**: Functions `SortedFromMap` and `SortedFromMapFunc` are now
+  optimized for cases where iteration is cut short.
+- **Documentation**: minor fixes
+
+### Removed
+
+- **API** (breaking change): function `SortedFuncFromMap`
+
 ## [0.4.0] (2024-10-03)
 
 ### Added
@@ -81,8 +111,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.0] (2024-09-14)
 
+[0.5.0]: https://github.com/jub0bs/iterutil/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/jub0bs/iterutil/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/jub0bs/iterutil/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/jub0bs/iterutil/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/jub0bs/iterutil/releases/tag/v0.1.0
+
 [constraints.Integer]: https://pkg.go.dev/golang.org/x/exp/constraints#Integer
+[constraints.Signed]: https://pkg.go.dev/golang.org/x/exp/constraints#Signed
