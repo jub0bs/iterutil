@@ -3,8 +3,8 @@ package iterutil
 import (
 	"cmp"
 	"iter"
-	"slices"
 
+	"github.com/jub0bs/iterutil/internal"
 	"golang.org/x/exp/constraints"
 )
 
@@ -92,20 +92,7 @@ func Cycle[E any](seq iter.Seq[E]) iter.Seq[E] {
 // SortedFromMap returns an iterator over the key-value pairs in m
 // ordered by its keys.
 func SortedFromMap[M ~map[K]V, K cmp.Ordered, V any](m M) iter.Seq2[K, V] {
-	return func(yield func(K, V) bool) {
-		// One possibility would be to simply iterate over
-		// slices.Sorted(maps.Keys(m)),
-		// but doing so would incur unnecessary allocations;
-		// we can do better since we already know the number of keys.
-		// See https://github.com/golang/go/issues/61899#issuecomment-2198727055.
-		ks := keys(m)
-		slices.Sort(ks)
-		for _, k := range ks {
-			if !yield(k, m[k]) {
-				return
-			}
-		}
-	}
+	return sortedFromMapFunc(m, cmp.Compare)
 }
 
 // SortedFromMapFunc returns an iterator over the key-value pairs in m
@@ -117,22 +104,35 @@ func SortedFromMap[M ~map[K]V, K cmp.Ordered, V any](m M) iter.Seq2[K, V] {
 //
 // [total order]: https://en.wikipedia.org/wiki/Total_order
 func SortedFromMapFunc[M ~map[K]V, K comparable, V any](m M, cmp func(K, K) int) iter.Seq2[K, V] {
+	return sortedFromMapFunc(m, cmp)
+}
+
+func sortedFromMapFunc[M ~map[K]V, K comparable, V any](m M, cmp func(K, K) int) iter.Seq2[K, V] {
 	return func(yield func(K, V) bool) {
-		// see implementation comment in SortedFromMapFunc
-		ks := keys(m)
-		slices.SortFunc(ks, cmp)
-		for _, k := range ks {
+		// One possibility would be to simply iterate over
+		// slices.Sorted(maps.Keys(m)),
+		// but this approach incurs unnecessary allocations
+		// because it doesn't take advantage of how many keys the map contains.
+		//
+		// In fact, as earthboundkid insightfully pointed out in
+		// https://github.com/golang/go/issues/61898#issuecomment-2479025873,
+		// instead of sorting all the keys upfront,
+		// we can optimize for cases where not all of the key-value pairs
+		// get pushed to the iterator's yield function: to do so, we build
+		// a binary heap of the keys (in linear time and linear space),
+		// and then pop (in logarithmic time) each requested key off the heap.
+		// The overall worst-case time complexity is O(n + k*log(n)), where
+		//  - n is the number of keys in the map,
+		//  - k is the number of pairs pushed to the iterator's yield function.
+		keys := make([]K, 0, len(m))
+		for k := range m {
+			keys = append(keys, k)
+		}
+		heap := internal.NewHeap(keys, cmp)
+		for k := range heap.Iterator {
 			if !yield(k, m[k]) {
 				return
 			}
 		}
 	}
-}
-
-func keys[K comparable, V any](m map[K]V) []K {
-	ks := make([]K, 0, len(m))
-	for k := range m {
-		ks = append(ks, k)
-	}
-	return ks
 }
