@@ -1,6 +1,6 @@
 # jub0bs/iterutil
 
-[![tag](https://img.shields.io/github/tag/jub0bs/iterutil.svg)](https://github.com/jub0bs/iterutil/releases)
+[![tag](https://img.shields.io/github/tag/jub0bs/iterutil.svg)](https://github.com/jub0bs/iterutil/tags)
 ![Go Version](https://img.shields.io/badge/Go-%3E%3D%201.23-%23007d9c)
 [![Go Reference](https://pkg.go.dev/badge/github.com/jub0bs/iterutil.svg)](https://pkg.go.dev/github.com/jub0bs/iterutil)
 [![license](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat)](https://github.com/jub0bs/iterutil/raw/main/LICENSE)
