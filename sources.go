@@ -108,7 +108,7 @@ func SortedFromMap[M ~map[K]V, K cmp.Ordered, V any](m M) iter.Seq2[K, V] {
 	}
 }
 
-// SortedFuncFromMap returns an iterator over the key-value pairs in m
+// SortedFromMapFunc returns an iterator over the key-value pairs in m
 // ordered by its keys, using cmp as comparison function.
 //
 // Note that, for a deterministic behavior,
@@ -116,9 +116,9 @@ func SortedFromMap[M ~map[K]V, K cmp.Ordered, V any](m M) iter.Seq2[K, V] {
 // for more details, see the testable example labeled "incorrect".
 //
 // [total order]: https://en.wikipedia.org/wiki/Total_order
-func SortedFuncFromMap[M ~map[K]V, K comparable, V any](m M, cmp func(K, K) int) iter.Seq2[K, V] {
+func SortedFromMapFunc[M ~map[K]V, K comparable, V any](m M, cmp func(K, K) int) iter.Seq2[K, V] {
 	return func(yield func(K, V) bool) {
-		// see implementation comment in SortedFuncFromMap
+		// see implementation comment in SortedFromMapFunc
 		ks := keys(m)
 		slices.SortFunc(ks, cmp)
 		for _, k := range ks {

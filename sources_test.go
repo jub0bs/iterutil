@@ -398,13 +398,13 @@ func BenchmarkSortedFromMap(b *testing.B) {
 	}
 }
 
-func ExampleSortedFuncFromMap() {
+func ExampleSortedFromMapFunc() {
 	m := map[string]int{
 		"one":   1,
 		"two":   2,
 		"three": 3,
 	}
-	for k, v := range iterutil.SortedFuncFromMap(m, strings.Compare) {
+	for k, v := range iterutil.SortedFromMapFunc(m, strings.Compare) {
 		fmt.Println(k, v)
 	}
 	// Output:
@@ -413,7 +413,7 @@ func ExampleSortedFuncFromMap() {
 	// two 2
 }
 
-func ExampleSortedFuncFromMap_incorrect() {
+func ExampleSortedFromMapFunc_incorrect() {
 	m := map[string]int{
 		"one":   1,
 		"two":   2,
@@ -424,7 +424,7 @@ func ExampleSortedFuncFromMap_incorrect() {
 	// More specifically, lenCmp is not antisymmetric:
 	// for example, lenCmp("one", "two") = 0 and lenCmp("two", "one") = 0,
 	// but "one" != "two".
-	for k, v := range iterutil.SortedFuncFromMap(m, lenCmp) {
+	for k, v := range iterutil.SortedFromMapFunc(m, lenCmp) {
 		fmt.Println(k, v)
 	}
 	// Consequently, the output is nondeterministic; it may be either
@@ -440,7 +440,7 @@ func ExampleSortedFuncFromMap_incorrect() {
 	// three 3
 }
 
-func TestSortedFuncFromMap(t *testing.T) {
+func TestSortedFromMapFunc(t *testing.T) {
 	cases := []struct {
 		desc      string
 		m         map[string]int
@@ -476,7 +476,7 @@ func TestSortedFuncFromMap(t *testing.T) {
 	}
 	for _, tc := range cases {
 		f := func(t *testing.T) {
-			got := iterutil.SortedFuncFromMap(tc.m, strings.Compare)
+			got := iterutil.SortedFromMapFunc(tc.m, strings.Compare)
 			assertEqual2(t, got, tc.want, tc.breakWhen)
 		}
 		t.Run(tc.desc, f)
