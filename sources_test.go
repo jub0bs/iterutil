@@ -356,6 +356,48 @@ func TestSortedFromMap(t *testing.T) {
 	}
 }
 
+func BenchmarkSortedFromMap(b *testing.B) {
+	cases := []struct {
+		desc    string
+		count   int
+		breakAt int
+	}{
+		{
+			desc:    "few",
+			count:   1 << 12,
+			breakAt: 16,
+		}, {
+			desc:    "half",
+			count:   1 << 12,
+			breakAt: 1 << 11,
+		}, {
+			desc:    "all",
+			count:   1 << 12,
+			breakAt: 1 << 12,
+		},
+	}
+	plusOne := func(i int) int { return i + 1 }
+	for _, bc := range cases {
+		f := func(b *testing.B) {
+			seq := iterutil.Take(iterutil.Iterate(0, plusOne), bc.count)
+			m := make(map[int]struct{}, bc.count)
+			for k := range seq {
+				m[k] = struct{}{}
+			}
+			b.ReportAllocs()
+			b.ResetTimer()
+			for range b.N {
+				for k := range iterutil.SortedFromMap(m) {
+					if k == bc.breakAt {
+						break
+					}
+				}
+			}
+		}
+		b.Run(bc.desc, f)
+	}
+}
+
 func ExampleSortedFuncFromMap() {
 	m := map[string]int{
 		"one":   1,
