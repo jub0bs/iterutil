@@ -3,14 +3,14 @@ package internal
 import "iter"
 
 type HeapFunc[T any] struct {
-	s       []T
-	compare func(x, y T) int
+	s   []T
+	cmp func(x, y T) int
 }
 
-func NewHeapFunc[T any](vs []T, compare func(T, T) int) HeapFunc[T] {
+func NewHeapFunc[T any](vs []T, cmp func(T, T) int) HeapFunc[T] {
 	h := HeapFunc[T]{
-		s:       vs,
-		compare: compare,
+		s:   vs,
+		cmp: cmp,
 	}
 	// heapify
 	n := h.len()
@@ -36,7 +36,7 @@ func (h HeapFunc[T]) Iterator(yield func(T) bool) {
 var _ iter.Seq[int] = HeapFunc[int]{}.Iterator // compile-time check
 
 func (h HeapFunc[_]) less(i, j int) bool {
-	return h.compare(h.s[i], h.s[j]) < 0
+	return h.cmp(h.s[i], h.s[j]) < 0
 }
 
 func (h HeapFunc[_]) swap(i, j int) {
