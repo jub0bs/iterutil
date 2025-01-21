@@ -3,6 +3,7 @@ package iterutil_test
 import (
 	"cmp"
 	"fmt"
+	"iter"
 	"slices"
 	"strings"
 	"testing"
@@ -378,14 +379,13 @@ func BenchmarkSortedFromMap(b *testing.B) {
 	}
 	plusOne := func(i int) int { return i + 1 }
 	for _, bc := range cases {
+		seq := iterutil.Take(iterutil.Iterate(0, plusOne), bc.count)
+		m := make(map[int]struct{}, bc.count)
+		for k := range seq {
+			m[k] = struct{}{}
+		}
 		f := func(b *testing.B) {
-			seq := iterutil.Take(iterutil.Iterate(0, plusOne), bc.count)
-			m := make(map[int]struct{}, bc.count)
-			for k := range seq {
-				m[k] = struct{}{}
-			}
 			b.ReportAllocs()
-			b.ResetTimer()
 			for range b.N {
 				for k := range iterutil.SortedFromMap(m) {
 					if k == bc.breakAt {
@@ -394,7 +394,35 @@ func BenchmarkSortedFromMap(b *testing.B) {
 				}
 			}
 		}
-		b.Run(bc.desc, f)
+		name := fmt.Sprintf("case=%s/impl=binary_heap", bc.desc)
+		b.Run(name, f)
+		f = func(b *testing.B) {
+			b.ReportAllocs()
+			for range b.N {
+				for k := range referenceSortedFromMap(m) {
+					if k == bc.breakAt {
+						break
+					}
+				}
+			}
+		}
+		name = fmt.Sprintf("case=%s/impl=upfront_sort", bc.desc)
+		b.Run(name, f)
+	}
+}
+
+func referenceSortedFromMap[M ~map[K]V, K cmp.Ordered, V any](m M) iter.Seq2[K, V] {
+	return func(yield func(K, V) bool) {
+		ks := make([]K, len(m))
+		for k := range m {
+			ks = append(ks, k)
+		}
+		slices.Sort(ks)
+		for _, k := range ks {
+			if !yield(k, m[k]) {
+				return
+			}
+		}
 	}
 }
 

@@ -61,4 +61,7 @@ jobs:
           go test -run=^$ -bench=. -count=10 . > bench_results.txt
       - name: Run benchstat
         run: |
-          benchstat old/bench_results.txt new/bench_results.txt
+          benchstat -filter "/impl:binary_heap" old/bench_results.txt new/bench_results.txt
+      - name: Run benchstat (binary heap vs. upfront sort)
+        run: |
+          benchstat -col "/impl@(upfront_sort binary_heap)" new/bench_results.txt
