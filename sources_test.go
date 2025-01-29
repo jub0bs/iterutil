@@ -358,29 +358,40 @@ func TestSortedFromMap(t *testing.T) {
 }
 
 func BenchmarkSortedFromMap(b *testing.B) {
-	cases := []struct {
-		desc    string
-		count   int
-		breakAt int
-	}{
-		{
-			desc:    "few",
-			count:   1 << 12,
-			breakAt: 16,
-		}, {
-			desc:    "half",
-			count:   1 << 12,
-			breakAt: 1 << 11,
-		}, {
-			desc:    "all",
-			count:   1 << 12,
-			breakAt: 1 << 12,
-		},
+	type Case struct {
+		pairs    int
+		consumed string
+		breakAt  int
+	}
+	var cases []Case
+	const maxExp = 12
+
+	for n := range iterutil.Between(4, 13, 2) {
+		bc := Case{
+			pairs:    1 << n,
+			consumed: "at most 16",
+			breakAt:  min(16, 1<<n),
+		}
+		cases = append(cases, bc)
+
+		bc = Case{
+			pairs:    1 << n,
+			consumed: "half",
+			breakAt:  1 << (n - 1),
+		}
+		cases = append(cases, bc)
+
+		bc = Case{
+			pairs:    1 << n,
+			consumed: "all",
+			breakAt:  1 << n,
+		}
+		cases = append(cases, bc)
 	}
 	plusOne := func(i int) int { return i + 1 }
 	for _, bc := range cases {
-		seq := iterutil.Take(iterutil.Iterate(0, plusOne), bc.count)
-		m := make(map[int]struct{}, bc.count)
+		seq := iterutil.Take(iterutil.Iterate(0, plusOne), bc.pairs)
+		m := make(map[int]struct{}, bc.pairs)
 		for k := range seq {
 			m[k] = struct{}{}
 		}
@@ -394,7 +405,8 @@ func BenchmarkSortedFromMap(b *testing.B) {
 				}
 			}
 		}
-		name := fmt.Sprintf("case=%s/impl=binary_heap", bc.desc)
+		const tmpl = "impl=%s/pairs=%d/consumed=%s"
+		name := fmt.Sprintf(tmpl, "binary_heap", bc.pairs, bc.consumed)
 		b.Run(name, f)
 		f = func(b *testing.B) {
 			b.ReportAllocs()
@@ -406,7 +418,7 @@ func BenchmarkSortedFromMap(b *testing.B) {
 				}
 			}
 		}
-		name = fmt.Sprintf("case=%s/impl=upfront_sort", bc.desc)
+		name = fmt.Sprintf(tmpl, "upfront_sort", bc.pairs, bc.consumed)
 		b.Run(name, f)
 	}
 }
