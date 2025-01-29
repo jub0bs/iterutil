@@ -75,7 +75,6 @@ func TestAt(t *testing.T) {
 			if s != tc.want || ok != tc.ok {
 				t.Fatalf("got %s, %t; want %s, %t", s, ok, tc.want, tc.ok)
 			}
-
 		}
 		t.Run(tc.desc, f)
 	}
@@ -105,7 +104,6 @@ func TestAt(t *testing.T) {
 			if s != tc.want || ok != tc.ok {
 				t.Fatalf("got %s, %t; want %s, %t", s, ok, tc.want, tc.ok)
 			}
-
 		}
 		t.Run(tc.desc, f)
 	}
