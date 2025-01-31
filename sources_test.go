@@ -352,6 +352,9 @@ func TestSortedFromMap(t *testing.T) {
 		f := func(t *testing.T) {
 			got := iterutil.SortedFromMap(tc.m)
 			assertEqual2(t, got, tc.want, tc.breakWhen)
+			// sanity check: also test referenceSortedFromMap
+			got = referenceSortedFromMap(tc.m)
+			assertEqual2(t, got, tc.want, tc.breakWhen)
 		}
 		t.Run(tc.desc, f)
 	}
@@ -425,7 +428,7 @@ func BenchmarkSortedFromMap(b *testing.B) {
 
 func referenceSortedFromMap[M ~map[K]V, K cmp.Ordered, V any](m M) iter.Seq2[K, V] {
 	return func(yield func(K, V) bool) {
-		ks := make([]K, len(m))
+		ks := make([]K, 0, len(m))
 		for k := range m {
 			ks = append(ks, k)
 		}
