@@ -369,7 +369,7 @@ func BenchmarkSortedFromMap(b *testing.B) {
 	var cases []Case
 	const maxExp = 12
 
-	for n := range iterutil.Between(4, 13, 2) {
+	for n := range iterutil.Between(4, 11, 1) {
 		bc := Case{
 			pairs:    1 << n,
 			consumed: "at most 16",

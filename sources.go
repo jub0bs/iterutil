@@ -3,6 +3,7 @@ package iterutil
 import (
 	"cmp"
 	"iter"
+	"slices"
 
 	"github.com/jub0bs/iterutil/internal"
 	"golang.org/x/exp/constraints"
@@ -98,7 +99,23 @@ func SortedFromMap[M ~map[K]V, K cmp.Ordered, V any](m M) iter.Seq2[K, V] {
 		// but this approach incurs unnecessary allocations
 		// because it doesn't take advantage of how many keys the map contains.
 		//
-		// In fact, as earthboundkid insightfully pointed out in
+		// For small maps, sorting the keys upfront is faster.
+		if len(m) < mapSizeThreshold {
+			ks := make([]K, 0, len(m))
+			for k := range m {
+				ks = append(ks, k)
+			}
+			slices.Sort(ks)
+			for _, k := range ks {
+				if !yield(k, m[k]) {
+					return
+				}
+			}
+			return
+		}
+		//
+		// For larger maps, we can do better.
+		// As earthboundkid insightfully pointed out in
 		// https://github.com/golang/go/issues/61898#issuecomment-2479025873,
 		// instead of sorting all the keys upfront,
 		// we can optimize for cases where not all of the key-value pairs
@@ -127,6 +144,19 @@ func SortedFromMap[M ~map[K]V, K cmp.Ordered, V any](m M) iter.Seq2[K, V] {
 func SortedFromMapFunc[M ~map[K]V, K comparable, V any](m M, cmp func(K, K) int) iter.Seq2[K, V] {
 	return func(yield func(K, V) bool) {
 		// see implementation comment in SortedFromMap
+		if len(m) < mapSizeThreshold {
+			ks := make([]K, 0, len(m))
+			for k := range m {
+				ks = append(ks, k)
+			}
+			slices.SortFunc(ks, cmp)
+			for _, k := range ks {
+				if !yield(k, m[k]) {
+					return
+				}
+			}
+			return
+		}
 		for k := range internal.NewHeapFunc(keys(m), cmp).Iterator {
 			if !yield(k, m[k]) {
 				return
@@ -134,6 +164,8 @@ func SortedFromMapFunc[M ~map[K]V, K comparable, V any](m M, cmp func(K, K) int)
 		}
 	}
 }
+
+const mapSizeThreshold = 256 // chosen on the basis of benchmark results
 
 func keys[K comparable, V any](m map[K]V) []K {
 	ks := make([]K, 0, len(m))
